@@ -11,6 +11,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: ecd670f81dcf85e8df1f5b47f767b65cfdb9f874
+translated_at: 2026-08-19
 ---
 
 # CPU Execution Provider

@@ -11,6 +11,8 @@ status: proposed
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: d690945fe78d72a15af2107d1f4377327dffc107
+translated_at: 2026-08-19
 ---
 
 # Model Packages and Variants

@@ -39,6 +39,13 @@ ANCHOR = '<div class="left sidebar">'
 LABELS = {"zh": "中文", "en": "English"}
 HREFLANG = {"zh": "zh-CN", "en": "en"}
 
+# The 404 page is configured with no sidebars at all, so there is nothing to
+# attach to and nothing sensible to attach: the reader is not on a page, so
+# there is no counterpart to offer them. Named explicitly rather than covered by
+# a general "skip pages without the anchor" rule, because that rule would also
+# swallow a real layout change on every content page.
+UNANCHORED_BY_DESIGN = {"404.html"}
+
 STYLE = (
     "display:flex;justify-content:flex-end;font-size:0.9rem;"
     "opacity:0.8;margin-bottom:0.4rem"
@@ -112,10 +119,11 @@ def inject(public: Path, locales: list[str], base_path: str) -> dict[str, tuple[
             if is_redirect_stub(markup):
                 stubs += 1
                 continue
-            if ANCHOR not in markup:
-                unanchored.append(page.relative_to(root))
-                continue
             relative = page.relative_to(root)
+            if ANCHOR not in markup:
+                if relative.as_posix() not in UNANCHORED_BY_DESIGN:
+                    unanchored.append(relative)
+                continue
             counterpart = (public / other / relative).is_file()
             control = switcher(base_path, other, relative, counterpart)
             page.write_text(markup.replace(ANCHOR, ANCHOR + control, 1), encoding="utf-8")

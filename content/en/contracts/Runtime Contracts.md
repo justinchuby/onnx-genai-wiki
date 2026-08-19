@@ -11,6 +11,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 226219a82e40e33ae2b5109141364e13e892c6ae
+translated_at: 2026-08-19
 ---
 
 # Runtime Contracts

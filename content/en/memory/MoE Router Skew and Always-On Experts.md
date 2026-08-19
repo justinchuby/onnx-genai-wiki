@@ -14,6 +14,8 @@ status: maintained
 lang: en
 created: 2026-08-18
 updated: 2026-08-19
+translated_from: f6477bb2cfd16c7c540f9bb44db19af751e1b5d9
+translated_at: 2026-08-19
 ---
 
 # MoE Router Skew and Always-On Experts

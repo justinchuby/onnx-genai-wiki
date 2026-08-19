@@ -11,6 +11,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 93ea89ff0c7c6001efec90c7287a170813a7f167
+translated_at: 2026-08-19
 ---
 
 # Repository Map

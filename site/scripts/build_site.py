@@ -222,6 +222,20 @@ def main() -> int:
     for locale in LOCALES:
         build_locale(locale, args.host, base_path, public, args.manifest)
 
+    # Before the switcher, so that a page present in one language only is
+    # reported as the structural difference it is rather than quietly given a
+    # fallback link.
+    run(
+        [
+            "python3",
+            str(SCRIPTS / "check_locale_parity.py"),
+            str(public),
+            "--locales",
+            ",".join(LOCALES),
+        ],
+        cwd=QUARTZ,
+    )
+
     # After validation, deliberately: the switcher's links point into the other
     # locale's tree, which is precisely what a per-locale link check rejects.
     run(

@@ -12,6 +12,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 91b5e88295e10aa4b2d2950accca2d65e15277e9
+translated_at: 2026-08-19
 ---
 
 # Tracing and Profiling

@@ -13,6 +13,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: d80b4fdc003e847b0f94cd015e78b6312ec87efa
+translated_at: 2026-08-19
 ---
 
 # Plugin Execution Providers

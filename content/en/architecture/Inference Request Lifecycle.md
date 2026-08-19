@@ -11,6 +11,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 0199fa1ecdf19a5af2344c9c20ff7938c33ad854
+translated_at: 2026-08-19
 ---
 
 # Inference Request Lifecycle

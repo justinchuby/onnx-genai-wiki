@@ -13,6 +13,8 @@ status: maintained
 lang: en
 created: 2026-08-19
 updated: 2026-08-19
+translated_from: 69821359564f4306120ece74f4466f7c17b1b0d6
+translated_at: 2026-08-19
 ---
 
 # Chat Templates

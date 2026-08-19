@@ -11,6 +11,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 787b7f4f56fd26f42492dc7566ff8833db310ee2
+translated_at: 2026-08-19
 ---
 
 # CUDA Execution Provider

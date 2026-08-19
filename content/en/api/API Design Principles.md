@@ -12,6 +12,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: b2c1fd6731c7671d2a1833a21e6948c0cdffd2d7
+translated_at: 2026-08-19
 ---
 
 # API Design Principles

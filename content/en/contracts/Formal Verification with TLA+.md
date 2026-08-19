@@ -12,6 +12,8 @@ status: maintained
 lang: en
 created: 2026-08-18
 updated: 2026-08-19
+translated_from: a6fdb3371ba23580b3be8b4b7a304592d9c7681f
+translated_at: 2026-08-19
 ---
 
 # Formal Verification with TLA+

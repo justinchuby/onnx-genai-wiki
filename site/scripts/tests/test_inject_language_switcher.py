@@ -96,6 +96,11 @@ class InjectTests(unittest.TestCase):
         self.assertEqual(results["zh"][1], 1)
         self.assertEqual(self.read("zh", "Alias.html"), STUB)
 
+    def test_the_404_page_is_skipped_because_it_has_no_chrome_by_design(self) -> None:
+        (self.public / "zh" / "404.html").write_text("<html><body>gone</body></html>", "utf-8")
+        inject(self.public, ["zh", "en"], "/wiki/")
+        self.assertNotIn("language-switcher", self.read("zh", "404.html"))
+
     def test_a_page_that_is_neither_a_stub_nor_anchored_is_an_error(self) -> None:
         """A layout change must stop the build, not quietly drop the control."""
         (self.public / "zh" / "Odd.html").write_text("<html><body>no sidebar</body></html>", "utf-8")

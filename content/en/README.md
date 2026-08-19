@@ -9,6 +9,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 8ccee00b1540ba318b9565755a3fc52beedc9f11
+translated_at: 2026-08-19
 ---
 
 # onnx-genai Wiki

@@ -94,3 +94,20 @@ git hash-object "content/zh/index.md"
 Translation drift does not fail the publish. A stale English page is still a
 page, and blocking the Chinese edition from going out because the English one
 lags would punish the source of truth for the mirror's delay.
+
+## A hazard worth knowing about
+
+Translation can change a page's *structure* without changing a word of its
+content, and no check of the Markdown can see it because the Markdown is right
+in both languages.
+
+The case that prompted the check: Obsidian reads `#word` as an inline tag when
+it follows whitespace. A Chinese sentence writes `、#864/#874(WDDM 回退)`,
+where the ideographic comma before the `#` stops it being a tag. The natural
+English rendering is `, #864/#874 (WDDM fallback)` — same meaning, and now a tag
+page called `864/874` exists in the English site and nowhere else.
+
+`site/scripts/check_locale_parity.py` runs during the build and requires both
+locales to emit exactly the same set of pages. Every page derives from something
+identical across the two trees — a filename, an alias, a tag, a directory — so
+any difference was introduced by the rendering rather than by an author.

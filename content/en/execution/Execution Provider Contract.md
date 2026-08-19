@@ -11,6 +11,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 816700cb27fd08cb694ba2cf57aa83fba6408324
+translated_at: 2026-08-19
 ---
 
 # Execution Provider Contract

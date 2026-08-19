@@ -13,6 +13,8 @@ status: proposed
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 5cb64a83377a9003943b20ce57e8aae8cc79f9b0
+translated_at: 2026-08-19
 ---
 
 # Memory Management for Beginners
@@ -121,16 +123,16 @@ For example, a KV cache may eventually need 10 GB but currently uses only 100 MB
 └── 100 MB..10 GB  → 暂时只有地址
 ```
 
-生成更多 token 后，再逐段安装 backing：
+As more tokens are generated, backing is installed segment by segment:
 
 ```text
 100 MB → 120 MB → 160 MB → …
 ```
 
-指针保持不变，因此依赖稳定地址的 tensor binding 或 graph capture
-不需要因为 KV 增长而重建。
+The pointer stays the same, so tensor bindings or graph captures that depend on a
+stable address do not have to be rebuilt as the KV grows.
 
-这需要一组与普通 allocate/free 不同的操作：
+This requires a set of operations different from ordinary allocate/free:
 
 ```rust
 trait VirtualBacking: Send + Sync {
@@ -153,19 +155,21 @@ trait VirtualBacking: Send + Sync {
 }
 ```
 
-| 操作 | 含义 |
+| Operation | Meaning |
 |---|---|
-| `reserve` | 保留虚拟地址，但不一定取得物理内存 |
-| `commit/map` | 给一段地址安装物理 backing |
-| `decommit/unmap` | 移除 backing，但保留地址 |
-| `committed_bytes` | 查询该 allocation 当前安装的物理字节 |
+| `reserve` | Reserve a virtual address, but not necessarily obtain physical memory |
+| `commit/map` | Install physical backing for a range of addresses |
+| `decommit/unmap` | Remove backing but keep the address |
+| `committed_bytes` | Query the physical bytes currently installed for the allocation |
 
-## “拆分 capabilities”是什么意思
+## What "splitting capabilities" means
 
-当前 `DeviceAllocator` 同时包含普通分配、lazy commit/decommit、
-committed-byte 查询、mapped-capacity 协作和 shared-prefix 等方法。
+The current `DeviceAllocator` combines ordinary allocation, lazy commit/decommit,
+committed-byte queries, mapped-capacity cooperation and shared-prefix methods all
+at once.
 
-大多数普通 allocator 不支持高级功能，只能依赖默认实现。例如：
+Most ordinary allocators do not support the advanced features and can only rely on
+default implementations. For example:
 
 ```rust
 fn commit_allocation_range(...) -> Result<()> {
@@ -173,22 +177,22 @@ fn commit_allocation_range(...) -> Result<()> {
 }
 ```
 
-这里的 `Ok(())` 可能有两种完全不同的解释：
+Here `Ok(())` can have two completely different meanings:
 
-1. lazy allocator 刚刚成功安装了 backing；
-2. eager allocator 在 allocate 时已经分配全部内存，这里什么也没做。
+1. a lazy allocator just successfully installed backing;
+2. an eager allocator already allocated all the memory at allocate time and did nothing here.
 
-> [!warning] Successful no-op 会隐藏记账错误
-> 如果上层误以为 allocator 是 lazy 的，可能只向 Governor 申请 100 MB，实际却在 allocation 时占用了完整 10 GB。
+> [!warning] A successful no-op can hide accounting errors
+> If the upper layer wrongly assumes the allocator is lazy, it may request only 100 MB from the Governor while actually taking the full 10 GB at allocation time.
 
-“拆分 capabilities”就是：
+"Splitting capabilities" means:
 
-- 所有机制只需要实现最小 `DeviceAllocator`；
-- 真正支持地址/backing 分离的实现才提供 `VirtualBacking`；
-- 真正支持物理页共享的实现才提供 `SharedMapping`；
-- 不支持某项能力时明确返回 absence 或 error，而不是成功 no-op。
+- every mechanism only needs to implement the minimal `DeviceAllocator`;
+- only implementations that truly support address/backing separation provide `VirtualBacking`;
+- only implementations that truly support physical-page sharing provide `SharedMapping`;
+- when a capability is unsupported, return an explicit absence or error rather than a successful no-op.
 
-概念接口可以是：
+A conceptual interface might be:
 
 ```rust
 trait DeviceMemoryMechanism {
@@ -198,7 +202,7 @@ trait DeviceMemoryMechanism {
 }
 ```
 
-调用方必须显式处理 fallback：
+The caller must handle the fallback explicitly:
 
 ```rust
 let Some(backing) = mechanism.virtual_backing() else {
@@ -206,18 +210,19 @@ let Some(backing) = mechanism.virtual_backing() else {
 };
 ```
 
-这不是已经接受的最终 API，只用于说明能力应显式协商。
+This is not an accepted final API; it only illustrates that capabilities should be
+negotiated explicitly.
 
-## 为什么 SharedMapping 应再次独立
+## Why SharedMapping should be separate again
 
-多个请求可能具有相同 prompt：
+Multiple requests may share the same prompt:
 
 ```text
 请求 A: [共享 system prompt][A 的后续 token]
 请求 B: [共享 system prompt][B 的后续 token]
 ```
 
-对应的 KV 可以让两个虚拟地址共享同一批 prefix 物理页：
+Their KV can let two virtual addresses share the same batch of prefix physical pages:
 
 ```text
 A 的虚拟地址 ─┐
@@ -225,13 +230,14 @@ A 的虚拟地址 ─┐
 B 的虚拟地址 ─┘
 ```
 
-这需要物理 handle、多地址映射、引用计数、只读保护，可能还需要
-Copy-on-Write。支持普通 VMM reserve/map 不代表一定支持这些能力，所以
-它应是独立的可选 capability。
+This requires a physical handle, multi-address mapping, reference counting,
+read-only protection, and possibly Copy-on-Write. Supporting ordinary VMM
+reserve/map does not imply supporting these features, so it should be a separate,
+optional capability.
 
-## Governor 和 Holder 如何配合
+## How the Governor and Holder work together
 
-Governor 类似预算部门：
+The Governor is like a budget department:
 
 ```text
 总容量：24 GB
@@ -240,7 +246,8 @@ Governor 类似预算部门：
 结果：可以批准
 ```
 
-它维护 charge、reservation 和 lease。内存紧张时，它只能发送：
+It maintains charges, reservations and leases. When memory is tight, all it can
+send is:
 
 ```text
 pressure ticket:
@@ -249,7 +256,7 @@ pressure ticket:
   deadline = ...
 ```
 
-只有 holder 知道哪些内容可以释放：
+Only the holder knows what can be released:
 
 ```text
 ModelResidency:
@@ -260,11 +267,11 @@ KvPageStore:
 ```
 
 > [!important] Authority never takes bytes directly
-> Governor 不得直接 unmap holder 的数据。Holder 可以合法地释放 0 bytes。
+> The Governor must not unmap a holder's data directly. A holder may legitimately release 0 bytes.
 
-## 为什么释放 GPU 内存需要 EP
+## Why releasing GPU memory needs the EP
 
-CPU 不再引用 buffer，不代表 GPU 已经使用完：
+The CPU no longer referencing a buffer does not mean the GPU has finished with it:
 
 ```text
 CPU 提交 kernel
@@ -272,7 +279,7 @@ CPU 最后一个 owning handle 被 Drop
 GPU 仍在读取 buffer
 ```
 
-立即 free 会造成 device use-after-free。安全流程是：
+Freeing immediately would cause a device use-after-free. The safe flow is:
 
 ```text
 owning handle Drop
@@ -286,33 +293,33 @@ allocator 真正释放
 更新 mapped-zone refund 和 Governor charge
 ```
 
-因此 RAII 是可行的，但 `Drop` 应负责排队，而不是在任意线程上直接
-同步整个 GPU 或立即 free。
+RAII is therefore workable, but `Drop` should be responsible for enqueuing, not
+for synchronizing the whole GPU on an arbitrary thread or freeing immediately.
 
-## 为什么不添加 `ExecutionProvider::allocator()`
+## Why not add `ExecutionProvider::allocator()`
 
-### 一个 EP 可能有多个内存域
+### An EP may have several memory domains
 
-例如 device、pinned host、unified memory、workspace arena、weight backing
-和 KV backing。单数 getter 无法说明调用方拿到的是哪一种。
+For example device, pinned host, unified memory, workspace arena, weight backing
+and KV backing. A singular getter cannot say which one the caller receives.
 
-### 有效 allocator 可能切换
+### The effective allocator may change
 
-CUDA EP 可能先使用普通 `cuMemAlloc`，之后安装 VMM arena。外部缓存旧
-allocator，再用它释放新 allocator 创建的 pointer，会造成
-cross-allocator free。
+A CUDA EP may first use ordinary `cuMemAlloc` and later install a VMM arena. If
+something caches the old allocator and then uses it to free a pointer created by
+the new allocator, that causes a cross-allocator free.
 
-### 裸 allocator 容易绕过 Governor
+### A raw allocator makes it easy to bypass the Governor
 
-上层如果能直接调用：
+If the upper layer can call directly:
 
 ```rust
 allocator.allocate(10_GB)
 ```
 
-就可能跳过 reservation 和 lease，使账本与真实占用分离。
+it can skip reservation and lease, letting the ledger diverge from real usage.
 
-更安全的方向是由 manager 发放受控 binding：
+A safer direction is for the manager to hand out a controlled binding:
 
 ```rust
 struct MemoryBinding {
@@ -322,11 +329,11 @@ struct MemoryBinding {
 }
 ```
 
-Binding 将正确的 device、mechanism、context、authority、capabilities
-和生命周期绑在一起。它可以负责 allocator 的选择，但 copy、commit、
-decommit 和 release ordering 仍应通过 EP/context 执行。
+The binding ties together the correct device, mechanism, context, authority,
+capabilities and lifetime. It can be responsible for allocator selection, but
+copy, commit, decommit and release ordering should still go through the EP/context.
 
-## 一次普通分配的完整生命周期
+## The full lifecycle of an ordinary allocation
 
 ```mermaid
 sequenceDiagram
@@ -347,10 +354,11 @@ sequenceDiagram
     B-->>H: usable view
 ```
 
-如果 allocation 失败，provisional grant 必须归还。实际 footprint 与计划
-不同时，应根据真实分配字节处理，不能静默保留错误账目。
+If the allocation fails, the provisional grant must be returned. When the actual
+footprint differs from the plan, act on the real allocated bytes; do not silently
+keep incorrect accounts.
 
-释放流程：
+The release flow:
 
 ```mermaid
 sequenceDiagram
@@ -368,25 +376,25 @@ sequenceDiagram
     Q->>G: release/refund charge
 ```
 
-## KV 按需增长的事务
+## The transaction for growing KV on demand
 
-假设最大上下文需要 10 GB，当前使用 100 MB：
+Suppose the maximum context needs 10 GB and 100 MB is currently in use:
 
-1. `VirtualBacking.reserve(10 GB)`，保留稳定地址；
-2. Holder 计算下一次增长需要的物理字节；
-3. Governor 为增长量提供 provisional grant；
-4. EP/backing 执行 `commit_range`；
-5. Holder 更新 KV view 和逻辑状态；
-6. 成功后提交 charge。
+1. `VirtualBacking.reserve(10 GB)`, reserving a stable address;
+2. the Holder computes the physical bytes needed for the next growth;
+3. the Governor provides a provisional grant for the growth amount;
+4. the EP/backing runs `commit_range`;
+5. the Holder updates the KV view and logical state;
+6. on success, commit the charge.
 
-如果步骤 4 或 5 失败：
+If step 4 or 5 fails:
 
-- 回滚 provisional mapping；
-- 归还 grant；
-- 保持旧 KV view 和请求状态；
-- 不暴露部分提交的新状态。
+- roll back the provisional mapping;
+- return the grant;
+- keep the old KV view and request state;
+- do not expose a partially committed new state.
 
-## 推荐的目标结构
+## Recommended target structure
 
 ```text
 ProcessMemoryManager
@@ -414,7 +422,7 @@ Holders / Policies
 └── workspace arenas
 ```
 
-底层契约适合放入低依赖的 `onnx-runtime-memory-api`：
+The low-level contract fits well in a low-dependency `onnx-runtime-memory-api`:
 
 ```text
 onnx-runtime-memory-api
@@ -425,50 +433,52 @@ onnx-runtime-memory-api
         └── session / ProcessMemoryManager
 ```
 
-`memory-api` 只定义共同契约，不拥有 policy 或具体实现。
+`memory-api` only defines the shared contract; it does not own policy or concrete
+implementations.
 
-## 推荐迁移顺序
+## Recommended migration order
 
-1. **提取 `onnx-runtime-memory-api`**：纯接口和类型移动，不改变行为。
-2. **拆分 capabilities**：最小 allocator、可选 backing、可选 shared mapping。
-3. **建立 provider/context pinning**：allocation 存活时 context 不会先销毁。
-4. **实现 deferred-free queue**：设备工作完成后才真正释放。
-5. **引入 owning allocation**：`Drop` 排队，`DeviceBuffer` 逐步成为 borrowed view。
-6. **引入 ProcessMemoryManager / MemoryBinding**：统一选择和 authority。
-7. **最后稳定插件 C ABI**：版本化 C vtable，Rust trait 仅用于进程内部。
+1. **Extract `onnx-runtime-memory-api`**: a pure move of interfaces and types, with no behavior change.
+2. **Split capabilities**: a minimal allocator, optional backing, optional shared mapping.
+3. **Establish provider/context pinning**: the context is not destroyed while an allocation is still alive.
+4. **Implement a deferred-free queue**: real release happens only after device work completes.
+5. **Introduce owning allocations**: `Drop` enqueues, and `DeviceBuffer` gradually becomes a borrowed view.
+6. **Introduce ProcessMemoryManager / MemoryBinding**: unify selection and authority.
+7. **Stabilize the plugin C ABI last**: a versioned C vtable, with Rust traits used only inside the process.
 
-每个阶段应是可独立验证、可独立回滚的 PR。不要把整套迁移压进
-[issue #513](https://github.com/justinchuby/onnx-genai/issues/513)；该 issue
-的核心目标——无需重写整个 EP 即可注入 allocator——已经通过
-`with_memory(...)` 实现。
+Each stage should be a PR that can be verified and rolled back independently. Do
+not cram the whole migration into
+[issue #513](https://github.com/justinchuby/onnx-genai/issues/513); that issue's
+core goal—injecting an allocator without rewriting the entire EP—is already
+achieved through `with_memory(...)`.
 
-## 设计不变量
+## Design invariants
 
-> [!important] 必须保持
-> - allocation 只能由创建它的 mechanism/context 释放；
-> - charge 必须在物理 commit 之前获得；
-> - capability 查询不能返回过期 allocator 快照；
-> - GPU release 必须遵守 stream/fence ordering；
-> - unsupported 不能伪装成 successful no-op；
-> - Governor 不选择 holder 的 victim；
-> - manager 选择 allocator，但不复制 EP 的 stream/context 职责。
+> [!important] Must hold
+> - an allocation may only be released by the mechanism/context that created it;
+> - a charge must be obtained before physical commit;
+> - a capability query must not return a stale allocator snapshot;
+> - GPU release must obey stream/fence ordering;
+> - unsupported must not masquerade as a successful no-op;
+> - the Governor does not choose a holder's victim;
+> - the manager selects the allocator but does not duplicate the EP's stream/context responsibilities.
 
 ## Glossary
 
-| 术语 | 含义 |
+| Term | Meaning |
 |---|---|
-| Virtual Address | 程序或设备看到的地址，不保证已有物理 backing |
-| Physical Backing | 地址背后实际提供存储的 RAM 或显存 |
-| Allocation | 具有明确 ownership 和释放规则的内存资源 |
-| Eager Allocation | 创建 allocation 时取得完整物理容量 |
-| Commit / Map | 为地址范围安装物理 backing |
-| Charge | 账本中某个 holder 承担的容量责任 |
-| Lease | 已提交给 holder 的容量所有权记录 |
-| Authority | 一个物理池在 accounting scope 内的唯一记账身份 |
-| Holder | 理解数据含义并负责选择 victim 的组件 |
-| Fence | 表示此前异步设备工作是否完成的同步对象 |
-| Deferred Free | 等待设备工作完成后再释放的机制 |
-| Capability | 某 mechanism 明确提供的可选能力 |
+| Virtual Address | An address seen by a program or device, with no guarantee of existing physical backing |
+| Physical Backing | The RAM or device memory that actually provides storage behind an address |
+| Allocation | A memory resource with well-defined ownership and release rules |
+| Eager Allocation | Taking the full physical capacity when the allocation is created |
+| Commit / Map | Installing physical backing for an address range |
+| Charge | The capacity responsibility a holder carries in the ledger |
+| Lease | A record of capacity ownership already committed to a holder |
+| Authority | The unique accounting identity of a physical pool within an accounting scope |
+| Holder | The component that understands the data's meaning and is responsible for choosing a victim |
+| Fence | A synchronization object indicating whether prior asynchronous device work has completed |
+| Deferred Free | A mechanism that waits for device work to complete before releasing |
+| Capability | An optional ability a mechanism explicitly provides |
 
 ## Formal sources
 

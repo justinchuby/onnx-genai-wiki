@@ -12,6 +12,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 79f7c26a82547348a1603c67c8b3b72b7ee03b51
+translated_at: 2026-08-19
 ---
 
 # Performance Engineering Playbook

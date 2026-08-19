@@ -11,6 +11,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: ae2f8397b7bda2c8476af21204c8d28160273550
+translated_at: 2026-08-19
 ---
 
 # Crate Architecture

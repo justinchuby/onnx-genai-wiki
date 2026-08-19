@@ -11,6 +11,8 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
+translated_from: 1b8bc33a8372425bff0e9940f09bd7d9300e1f10
+translated_at: 2026-08-19
 ---
 
 # Metadata Driven Runtime
