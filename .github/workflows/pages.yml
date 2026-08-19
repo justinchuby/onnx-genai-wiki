@@ -1,0 +1,67 @@
+name: Publish site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "content/**"
+      - "site/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The created-modified-date plugin prefers git dates when a page has
+          # no frontmatter date, so a shallow clone would date every such page
+          # to the checkout.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: site/quartz
+        run: npm ci
+
+      - name: Build both languages
+        working-directory: site/quartz
+        run: npm run wiki:build
+
+      - name: Report translation staleness
+        # Not a failure: a stale English page is still a page, and blocking the
+        # Chinese edition from publishing because the English one lags behind
+        # would punish the source of truth for the mirror's delay.
+        continue-on-error: true
+        run: python3 site/scripts/translation_status.py content/zh content/en
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/quartz/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,15 @@
+# Quartz dependencies, installed plugins, caches, and build output.
+/site/quartz/node_modules/
+/site/quartz/public/
+/site/quartz/.quartz/
+/site/quartz/.quartz-cache/
+/site/quartz/**/.quartz-cache/
+/site/quartz/tsconfig.tsbuildinfo
+
+# quartz.config.yaml is generated per locale from quartz.config.base.yaml by
+# site/scripts/render_config.py. Edit the base file, never this one.
+/site/quartz/quartz.config.yaml
+
+__pycache__/
+*.pyc
+.DS_Store

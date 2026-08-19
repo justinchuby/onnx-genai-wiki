@@ -1,0 +1,84 @@
+name: Check English translations
+
+# The English edition is derived from the Chinese one, so it goes out of date
+# whenever a source page changes. This finds the pages that have drifted and
+# records them in a single tracking issue for an agent or a person to pick up.
+#
+# It deliberately does not translate anything itself. A workflow that opened a
+# pull request full of machine translation on every source edit would put the
+# repository's least reviewed content on its most frequent path, and the drift
+# it was meant to fix would become invisible under the volume.
+
+on:
+  schedule:
+    - cron: "41 4 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "content/zh/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: translation-status
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compare the English edition against its source
+        id: status
+        run: |
+          set -euo pipefail
+          python3 site/scripts/translation_status.py content/zh content/en | tee status.txt
+          python3 site/scripts/translation_status.py content/zh content/en \
+            --format markdown > body.md
+          if python3 site/scripts/translation_status.py content/zh content/en \
+              --fail-on-stale > /dev/null; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRIFTED: ${{ steps.status.outputs.drifted }}
+        run: |
+          set -euo pipefail
+          title="English translations are behind content/zh"
+          existing=$(gh issue list --state open --search "$title in:title" \
+            --json number,title --jq \
+            ".[] | select(.title == \"$title\") | .number" | head -n1)
+
+          if [ "$DRIFTED" != "true" ]; then
+            if [ -n "$existing" ]; then
+              gh issue comment "$existing" --body \
+                "Every English page now matches its Chinese source. Closing."
+              gh issue close "$existing"
+            fi
+            echo "nothing to report"
+            exit 0
+          fi
+
+          if [ -n "$existing" ]; then
+            # Edit rather than comment: the list is a current state, and a
+            # thread of successive lists would leave the reader to work out
+            # which one still applies.
+            gh issue edit "$existing" --body-file body.md
+            echo "updated #$existing"
+          else
+            gh issue create --title "$title" --body-file body.md \
+              --label documentation || \
+            gh issue create --title "$title" --body-file body.md
+          fi

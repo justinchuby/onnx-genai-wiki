@@ -1,0 +1,92 @@
+name: Sync wiki content
+
+# The Chinese pages are authored in justinchuby/onnx-genai. This repository
+# publishes them, so content/zh is a mirror and must never be edited here: a
+# local fix would be silently overwritten by the next sync, which is worse than
+# it not being possible at all.
+#
+# The mirror is a sync rather than a submodule because the source repository's
+# history is around 229 MB while the wiki directory is around 212 KB. A
+# submodule would clone all of it on every build to reach a thousandth of it,
+# and could only reference the whole repository rather than one directory.
+# Copying also means `git log content/zh` in this repository is a real history
+# of the published pages, which is what the translation staleness check reads.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types: [wiki-updated]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-wiki-content
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this repository
+        uses: actions/checkout@v4
+
+      - name: Check out the wiki directory of the source repository
+        uses: actions/checkout@v4
+        with:
+          repository: justinchuby/onnx-genai
+          path: source
+          sparse-checkout: wiki
+          sparse-checkout-cone-mode: true
+
+      - name: Record the source revision and file listing
+        run: |
+          set -euo pipefail
+          cd source
+          echo "SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          # The full listing, not just the sparse working tree: the link
+          # rewriter resolves repository links against it, and a listing
+          # truncated to the wiki directory would turn every link to a crate or
+          # a document into an unresolvable one.
+          git ls-tree -r --name-only HEAD > "$GITHUB_WORKSPACE/source-manifest.txt"
+
+      - name: Replace the mirrored pages
+        run: |
+          set -euo pipefail
+          test -d source/wiki
+          # A wholesale replace, so that a page deleted upstream disappears
+          # here too. Copying over the top would leave it published forever.
+          rm -rf content/zh
+          mkdir -p content
+          cp -R source/wiki content/zh
+          mv source-manifest.txt content/source-manifest.txt
+          rm -rf source
+
+      - name: Refuse an empty or implausible mirror
+        run: |
+          set -euo pipefail
+          pages=$(find content/zh -name '*.md' | wc -l | tr -d ' ')
+          echo "mirrored $pages page(s)"
+          if [ "$pages" -lt 10 ]; then
+            echo "::error::only $pages page(s) mirrored; refusing to publish what looks like a failed checkout"
+            exit 1
+          fi
+          if [ ! -s content/source-manifest.txt ]; then
+            echo "::error::empty source manifest; repository links would silently stop being rewritten"
+            exit 1
+          fi
+
+      - name: Commit if anything changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A content/zh content/source-manifest.txt
+          if git diff --cached --quiet; then
+            echo "no change"
+            exit 0
+          fi
+          git commit -m "Sync wiki content from onnx-genai@${SOURCE_SHA:0:12}"
+          git push
