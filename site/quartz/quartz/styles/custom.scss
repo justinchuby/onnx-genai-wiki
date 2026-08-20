@@ -1,3 +1,28 @@
 @use "./base.scss";
 
-// put your custom CSS here!
+// Quartz builds --codeFont as `"<typography.code>", ui-monospace, SFMono-Regular,
+// "SF Mono", Menlo, monospace`. That stack is macOS-shaped and it breaks on Windows.
+//
+// `ui-monospace` is a CSS Fonts 4 generic that only Safari implements. Chromium
+// parses the keyword but has no Windows mapping for it, so rather than falling
+// through to the next entry it resolves to the browser's *standard* font --
+// Times New Roman. Code blocks in Edge on Windows therefore render in a serif
+// face, while the same page on macOS looks right because SF Mono is installed.
+//
+// The stack below names real families per platform and never leans on an
+// extended generic. The CJK families come last deliberately: font fallback is
+// per character, so Latin still resolves to SF Mono or Consolas and only the
+// characters those faces lack ever reach the CJK entries.
+//
+// Caveat worth knowing: Windows and most Linux distributions ship a monospace
+// CJK face, but macOS does not. Chinese inside a code block therefore still
+// falls to a proportional face there and will not sit on the character grid.
+// That is a reason to keep prose out of code blocks, not something CSS can fix.
+html:root {
+  --codeFont:
+    "SF Mono", SFMono-Regular, Menlo,
+    Consolas, "Cascadia Mono", "Cascadia Code",
+    "DejaVu Sans Mono", "Liberation Mono", "Ubuntu Mono",
+    "Sarasa Mono SC", "Noto Sans Mono CJK SC", "Microsoft YaHei Mono", NSimSun,
+    monospace;
+}
