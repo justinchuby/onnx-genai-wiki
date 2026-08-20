@@ -50,7 +50,13 @@ plugins:
         - created
         - updated
         - tags
-        - aliases
+      # `aliases` is deliberately absent. It is routing configuration, not
+      # metadata a reader wants: Quartz turns each entry into a redirect stub
+      # so an inbound link written under an old or Chinese title still lands.
+      # Those stubs are emitted from the frontmatter by Quartz itself and do
+      # not depend on this plugin, so hiding the property breaks no link.
+      # Displaying it published the Chinese aliases on top of every English
+      # page, which is the wrong language for that edition and noise in both.
       excludedProperties: []
       hidePropertiesView: false
       delimiters: ---
