@@ -38,8 +38,13 @@ jobs:
         with:
           repository: justinchuby/onnx-genai
           path: source
-          sparse-checkout: wiki
-          sparse-checkout-cone-mode: true
+          # Anchored, because cone mode is off here and the patterns are
+          # gitignore-style: an unanchored `wiki` would match a path segment
+          # anywhere in the tree rather than the directory being mirrored.
+          sparse-checkout: |
+            /wiki
+            /scripts/lint_wiki_voice.py
+          sparse-checkout-cone-mode: false
 
       - name: Record the source revision and file listing
         run: |
@@ -62,6 +67,15 @@ jobs:
           mkdir -p content
           cp -R source/wiki content/zh
           mv source-manifest.txt content/source-manifest.txt
+          # The voice rule is defined upstream and the linter that enforces it
+          # is the definition, so it is mirrored rather than copied by hand.
+          # The English edition needs it more than the source does: a
+          # translator paraphrasing is exactly how "as you noted" gets into a
+          # page, and until this was mirrored nothing checked the translations
+          # at all.
+          test -f source/scripts/lint_wiki_voice.py
+          mkdir -p site/scripts/vendor
+          cp source/scripts/lint_wiki_voice.py site/scripts/vendor/lint_wiki_voice.py
           rm -rf source
 
       - name: Refuse an empty or implausible mirror

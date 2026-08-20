@@ -54,3 +54,14 @@ jobs:
         # step is what prints the offending page, line and the reason the rule
         # exists.
         run: python3 site/scripts/check_code_block_parity.py content/zh content/en
+
+      - name: Check every page reads for an outside reader
+        # The linter is mirrored from the source repository rather than kept
+        # here, so both editions are held to one definition of the rule instead
+        # of to two copies that drift. Until it was mirrored, the English
+        # edition was never checked at all -- and a translator paraphrasing is
+        # the likeliest way "as you noted" reaches a published page.
+        run: |
+          set -euo pipefail
+          find content -name '*.md' -print0 |
+            xargs -0 python3 site/scripts/vendor/lint_wiki_voice.py
