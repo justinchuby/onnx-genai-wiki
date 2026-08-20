@@ -1485,6 +1485,7 @@ crates/onnx-genai-bench/src/bin/roofline_transfer.rs
 crates/onnx-genai-bench/src/bin/verify_logits_probe.rs
 crates/onnx-genai-bench/src/lib.rs
 crates/onnx-genai-bench/src/synthetic_decoder.rs
+crates/onnx-genai-bench/testdata/long-prompt.txt
 crates/onnx-genai-bench/tests/fused_batch_prefill.rs
 crates/onnx-genai-bench/tests/profile_native.rs
 crates/onnx-genai-capi/Cargo.toml
@@ -2011,6 +2012,7 @@ crates/onnx-runtime-ep-api/tests/fixtures/missing_create_ep_factories.c
 crates/onnx-runtime-ep-api/tests/mock_ep.rs
 crates/onnx-runtime-ep-cpu-plugin/Cargo.toml
 crates/onnx-runtime-ep-cpu-plugin/src/lib.rs
+crates/onnx-runtime-ep-cpu-plugin/tests/cdylib_feature_mirror.rs
 crates/onnx-runtime-ep-cpu-plugin/tests/cdylib_resolve.rs
 crates/onnx-runtime-ep-cpu-plugin/tests/common/ort_session.rs
 crates/onnx-runtime-ep-cpu-plugin/tests/decode_pool_optout.rs
@@ -2099,6 +2101,7 @@ crates/onnx-runtime-ep-cpu/benches/README.md
 crates/onnx-runtime-ep-cpu/benches/activation_bench.rs
 crates/onnx-runtime-ep-cpu/benches/common/mod.rs
 crates/onnx-runtime-ep-cpu/benches/gqa_decode.rs
+crates/onnx-runtime-ep-cpu/benches/half_decode_gemv_ab.rs
 crates/onnx-runtime-ep-cpu/benches/half_prefill_route_ab.rs
 crates/onnx-runtime-ep-cpu/benches/int4_prefill_route_ab.rs
 crates/onnx-runtime-ep-cpu/benches/int8_prefill_route_ab.rs
@@ -2878,6 +2881,8 @@ docs/benchmarks/2026-08-18-moe-tiering-and-route-aware-scheduling.md
 docs/benchmarks/2026-08-18-moe-vmm-granularity-trade-curve.md
 docs/benchmarks/2026-08-18-multirow-gemv-ceiling-probe.md
 docs/benchmarks/2026-08-19-batch-decode-mge2-capture-segmentation.md
+docs/benchmarks/2026-08-19-bf16-decode-gemv.md
+docs/benchmarks/2026-08-19-f16-gemm-transb-decode.md
 docs/benchmarks/2026-08-19-half-prefill-fused-widen-pack-gebp.md
 docs/benchmarks/2026-08-19-int4-prefill-fused-dequant-gebp.md
 docs/benchmarks/2026-08-19-int4-prefill-row-blocking.md
@@ -3129,6 +3134,7 @@ scripts/moe_tier_sim_results.json
 scripts/ort_ab/README.md
 scripts/ort_ab/ab.py
 scripts/ort_ab/gen_activations.py
+scripts/ort_ab/gen_decode.py
 scripts/ort_ab/gen_gemm.py
 scripts/ort_ab/gen_gqa.py
 scripts/ort_ab/gen_grid.py
@@ -3138,6 +3144,7 @@ scripts/ort_ab/gen_moe.py
 scripts/ort_ab/gen_sdpa_region.py
 scripts/ort_ab/gen_transforms.py
 scripts/ort_ab/ort_cuda_decode_bench.py
+scripts/ort_ab/sweep_decode.py
 scripts/qwen_q4_f32_oracle.py
 scripts/repack_external_data.py
 scripts/run_benchmarks.sh
