@@ -12,7 +12,7 @@ status: maintained
 lang: en
 created: 2026-08-18
 updated: 2026-08-19
-translated_from: 11362e8a74f7e6e55dea41b815b4981e39c1cb87
+translated_from: 2d80eb60797c7e014609e9d5a6caba42a3499fd4
 translated_at: 2026-08-19
 ---
 
@@ -49,7 +49,7 @@ flowchart TD
 
 | Layer | Typical evidence |
 |---|---|
-| Syntax and style | `cargo fmt --all -- --check`, Python syntax, generated-file checks |
+| Syntax and style | `cargo fmt` (see the Windows caveat below), Python syntax, generated-file checks |
 | Type surface | targeted `cargo check --locked -p ...` |
 | Behavior | targeted `cargo test --locked -p ...` |
 | Lints | targeted `cargo clippy --locked -p ... --all-targets -- -D warnings` |
@@ -112,6 +112,54 @@ still broader than most code changes need. Prefer targeted packages first.
 The CPU EP enables vendored MLAS by default. On a machine without the required
 C++/assembly toolchain, `--no-default-features` can exercise the pure-Rust
 fallback, but it is not a substitute for the shipped MLAS build.
+
+## Formatting (and the Windows caveat)
+
+CI runs `cargo fmt --all -- --check` on Linux, where it works. **That command
+cannot work on Windows in this workspace.** `cargo fmt --all` passes every file
+in the workspace to a single `rustfmt` invocation; with 54 members and around
+970 tracked `.rs` files, the argument list exceeds the roughly 32 KB Windows
+command-line limit and the command fails:
+
+```
+The filename or extension is too long. (os error 206)
+```
+
+Linux CI escapes this only because its `ARG_MAX` is far larger, around 2 MB.
+
+On Windows, check formatting **per package** instead. `cargo fmt -p <pkg>`
+invokes `rustfmt` once per package using the edition that package declares —
+which matters, because this workspace is mixed-edition: most members are
+edition 2024 and a few are 2021. Do **not** substitute a bare
+`rustfmt --edition <E>` loop: with the wrong edition `rustfmt` misparses
+2024-only syntax such as `let` chains and fails (`error: let chains are only
+allowed in Rust 2024 or later`). Only cargo knows each package's declared
+edition, so driving the check per package is the only correct approach.
+
+```bash
+# Check only the packages you changed (Windows-safe):
+cargo fmt -p onnx-runtime-memory -- --check
+# Apply fixes to the same set:
+cargo fmt -p onnx-runtime-memory
+```
+
+The local pre-commit gate automates exactly this. Install it once:
+
+```bash
+bash scripts/install-hooks.sh
+```
+
+`install-hooks.sh` resolves the hooks directory through
+`git rev-parse --git-common-dir`, so it works from the main checkout or from any
+linked worktree (hooks are shared across all worktrees of a repository). The
+installed `pre-commit` maps staged `.rs` files to their owning packages and runs
+`cargo fmt -p <pkg> -- --check` on **only** those packages, which is both
+Windows-safe and free of blocking on pre-existing formatting drift elsewhere in
+the tree. It mirrors CI's scope precisely: files belonging to crates that are
+not workspace members (such as the root `bench-*` crates, which CI's
+`cargo fmt --all` likewise does not cover) are skipped with a warning rather
+than blocked, and if `cargo metadata` cannot run at all the hook warns and lets
+the commit through rather than locking you out of the repository.
 
 ## Feature-gated code
 

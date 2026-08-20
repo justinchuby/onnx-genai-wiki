@@ -75,6 +75,62 @@ class ValidateSiteTest(unittest.TestCase):
             text=True,
         )
 
+    def run_locale_validator(
+        self, base_path: str = "/onnx-genai/", site_base: str = "/"
+    ) -> subprocess.CompletedProcess[str]:
+        """Validate as if this tree were one locale of a larger site."""
+        return subprocess.run(
+            [
+                "python3",
+                str(VALIDATOR),
+                str(self.public),
+                base_path,
+                "--site-base",
+                site_base,
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+    def test_a_link_to_the_site_root_is_not_an_escape(self) -> None:
+        # The bilingual site publishes each locale under the site base, so a
+        # page saying where the site lives points above its own locale. That is
+        # the language switcher's target too, and it is not an escape.
+        self.write_valid_site(
+            index_extra='<a href="https://www.justinchuby.com/">site</a>'
+        )
+        result = self.run_locale_validator()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_a_link_into_the_other_locale_is_not_an_escape(self) -> None:
+        self.write_valid_site(index_extra='<a href="/other/README">other</a>')
+        result = self.run_locale_validator()
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_a_link_outside_the_site_base_is_still_an_escape(self) -> None:
+        # The point of widening the scope was to stop rejecting links that stay
+        # inside the site. It must not stop rejecting links that leave it, or
+        # the check has been deleted rather than corrected.
+        self.write_valid_site(index_extra='<a href="/elsewhere/page">nope</a>')
+        result = self.run_locale_validator(site_base="/onnx-genai/")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("internal URL escapes", result.stderr)
+
+    def test_a_missing_target_inside_the_locale_is_still_reported(self) -> None:
+        # Widening the scope must not turn the existence check off for the
+        # locale being validated.
+        self.write_valid_site(index_extra='<a href="/onnx-genai/missing">x</a>')
+        result = self.run_locale_validator()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("missing internal target", result.stderr)
+
+    def test_a_site_base_that_does_not_contain_the_locale_is_refused(self) -> None:
+        self.write_valid_site()
+        result = self.run_locale_validator(site_base="/somewhere-else/")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("not under site base", result.stderr)
+
     def test_accepts_reviewed_site(self) -> None:
         self.write_valid_site()
         result = self.run_validator()

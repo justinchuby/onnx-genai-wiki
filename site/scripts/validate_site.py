@@ -220,10 +220,27 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("public", type=Path)
     parser.add_argument("base_path")
+    parser.add_argument(
+        "--site-base",
+        help=(
+            "path the whole site is published under, when base_path is only one "
+            "locale of it. Same-host links are checked against this rather than "
+            "against base_path, so a page may link to the site root or to the "
+            "other locale -- which is exactly what the language switcher does -- "
+            "without that counting as escaping the site. Defaults to base_path."
+        ),
+    )
     args = parser.parse_args()
 
     public = args.public.resolve()
     base_path = f"/{args.base_path.strip('/')}/"
+    if args.site_base is None:
+        site_base = base_path
+    else:
+        stripped = args.site_base.strip("/")
+        site_base = f"/{stripped}/" if stripped else "/"
+    if not base_path.startswith(site_base):
+        parser.error(f"base_path {base_path} is not under site base {site_base}")
     html_files = sorted(public.rglob("*.html"))
     errors: set[str] = set()
     documents: dict[Path, PageParser] = {}
@@ -255,8 +272,15 @@ def main() -> int:
                 continue
             checked_links += 1
             deployed = urlparse(urljoin(current_url, raw_url)).path
-            if deployed != base_path.rstrip("/") and not deployed.startswith(base_path):
-                errors.add(f"{html}: internal URL escapes {base_path}: {raw_url}")
+            if deployed != site_base.rstrip("/") and not deployed.startswith(site_base):
+                errors.add(f"{html}: internal URL escapes {site_base}: {raw_url}")
+                continue
+            if not deployed.startswith(base_path):
+                # Inside the site but outside this locale: the target lives in
+                # another locale's output tree, or is the site root redirect,
+                # neither of which exists yet when this locale is validated.
+                # check_locale_parity.py is what guarantees the other locale has
+                # the same set of pages.
                 continue
             candidates = output_candidates(public, deployed, base_path)
             target = next((candidate for candidate in candidates if candidate.is_file()), None)

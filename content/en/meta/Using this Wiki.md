@@ -11,7 +11,7 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
-translated_from: 72b027b82c8e377e6ddcdf1e0e29651579d98a31
+translated_from: 9d6959375aa0b412b93fa7677ddee054c963ebff
 translated_at: 2026-08-19
 ---
 
@@ -52,9 +52,8 @@ updated: 2026-08-17
 ```
 
 `lang` is a required field. Quartz uses its value directly as the published
-page's `<html lang>` attribute (see the use of `frontmatter?.lang` in
-`site/quartz/quartz/components/renderPage.tsx`), so it affects real accessibility
-and search-engine behavior. Chinese notes use `lang: zh-CN`.
+page's `<html lang>` attribute, so it affects real accessibility and
+search-engine behavior. Chinese notes use `lang: zh-CN`.
 
 Suggested statuses:
 
@@ -121,25 +120,33 @@ because GitHub renders them correctly and they represent formal sources:
 
 ## Preview and publish the static site
 
-The published site reads directly from `wiki/`; there is no second copy of the
-notes to maintain. From the repository root:
+The site generator does not live in this repository. `wiki/` is the **only**
+source of content, and publishing is handled by
+[justinchuby/onnx-genai-wiki](https://github.com/justinchuby/onnx-genai-wiki),
+which mirrors `wiki/` into its own `content/zh/` on a schedule, derives an
+English edition from it, and publishes both as a bilingual site with a language
+switcher.
+
+Two things follow. First, notes are still edited only here; pushing to `main`
+syncs them across automatically, so there is no second copy to maintain.
+Second, do **not** edit `content/zh/` in onnx-genai-wiki directly — it is a
+mirror, and the next sync replaces it wholesale.
+
+To preview locally, clone that repository:
 
 ```bash
-cd site/quartz
+git clone https://github.com/justinchuby/onnx-genai-wiki
+cd onnx-genai-wiki/site/quartz
 npm ci
 npm run wiki:serve
 ```
 
-Open <http://localhost:8080/onnx-genai/>. Before opening a pull request, run
-`npm run wiki:build` from the same directory. That command validates wikilinks,
-builds the production site, and checks that generated links and assets stay
-under the `/onnx-genai/` project path.
+The published address is <https://www.justinchuby.com/onnx-genai-wiki/>.
 
-Site settings live in `site/quartz/quartz.config.yaml`; dependency versions are
-recorded in the adjacent npm and Quartz lockfiles. The `Wiki Pages` workflow
-builds relevant pull requests and pushes, but only a push to `main` can deploy
-to GitHub Pages. Repository maintainers must select **GitHub Actions** as the
-Pages source.
+Inside this repository the only check worth running before committing a note is
+whether its wikilinks resolve — that one needs no site generator, and the
+onnx-genai-wiki build checks it again anyway, additionally requiring that the
+Chinese and English editions produce exactly the same set of pages.
 
 ## Human reading budget
 

@@ -9,7 +9,7 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
-translated_from: 8ccee00b1540ba318b9565755a3fc52beedc9f11
+translated_from: 59cbd5cad415f0849b6f5db5c6c55b6d535dc9b3
 translated_at: 2026-08-19
 ---
 
@@ -20,6 +20,13 @@ learning paths, and links between implementation concepts. It **does not replace
 the specifications, measured evidence, or accepted designs in `docs/`.
 
 Published readers start at [[index|onnx-genai Knowledge Base]].
+
+Notes are edited only here. The site is published by
+[justinchuby/onnx-genai-wiki](https://github.com/justinchuby/onnx-genai-wiki),
+which mirrors this directory on a schedule, derives an English edition from it,
+and publishes both as a bilingual site at
+<https://www.justinchuby.com/onnx-genai-wiki/>. The Chinese content there is a
+mirror: editing it directly is overwritten by the next sync.
 
 > [!important] Source precedence
 > When a wiki note disagrees with formal documentation or code, use this order:
@@ -101,8 +108,8 @@ Every note should:
 > do not force a translation.
 
 The `lang` field is used directly by Quartz as the published page's `<html lang>`
-attribute (`renderPage.tsx`), so it affects real accessibility and search-engine
-behavior, not just metadata. Chinese notes use `lang: zh-CN`.
+attribute, so it affects real accessibility and search-engine behavior, not just
+metadata. Chinese notes use `lang: zh-CN`.
 
 > [!note] Creation and modification dates
 > Obsidian can display the version-controlled `created` and `updated` properties

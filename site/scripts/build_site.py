@@ -95,6 +95,8 @@ def build_locale(locale: str, host: str, base_path: str, public: Path, manifest:
             str(SCRIPTS / "validate_site.py"),
             str(output),
             f"{base_path}{locale}/",
+            "--site-base",
+            base_path,
         ],
         cwd=QUARTZ,
     )
