@@ -53,6 +53,15 @@ that is worth more than a prettier URL for the primary language, because a
 switcher that special-cases the root locale fails on exactly the pages where it
 is hardest to notice.
 
+**The root lands in English, while Chinese remains the source of truth.** Those
+are separate settings in `build_site.py` — `LANDING_LOCALE` and `SOURCE_LOCALE`
+— and they answer different questions. The source locale decides what language
+an untranslated page is published in; the landing locale only decides where a
+visitor to `/` is sent. They were one constant once, which meant the audience
+question could not be answered without silently changing the content question.
+English is the landing language because most people arriving at the root read
+English, and a reader who wants Chinese is one click away either way.
+
 `quartz.config.yaml` is **generated** from `quartz.config.base.yaml` per locale
 and is not tracked. Edit the base file.
 

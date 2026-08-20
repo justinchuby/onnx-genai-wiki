@@ -5,7 +5,7 @@ Quartz reads its configuration from ``quartz.config.yaml`` in the working
 directory and builds one content root at a time, so a bilingual site is two
 builds. Both are emitted under a single ``public/`` tree:
 
-    public/index.html   redirect to the default locale
+    public/index.html   redirect to the landing locale
     public/zh/...       built from content/zh
     public/en/...       built from content/en, plus any page that has no
                         translation yet, carried over in Chinese
@@ -30,6 +30,11 @@ import tempfile
 import sys
 from pathlib import Path
 
+# The locale-to-hreflang map lives with the language switcher, which is the other
+# place a language code is emitted. Importing it rather than restating it keeps
+# the root redirect from claiming a different code than the switcher links to.
+from inject_language_switcher import HREFLANG
+
 SITE = Path(__file__).resolve().parents[1]
 QUARTZ = SITE / "quartz"
 SCRIPTS = SITE / "scripts"
@@ -38,7 +43,21 @@ BASE_CONFIG = QUARTZ / "quartz.config.base.yaml"
 CONFIG = QUARTZ / "quartz.config.yaml"
 
 LOCALES = ("zh", "en")
-DEFAULT_LOCALE = "zh"
+
+# Two different questions that were once one constant, which is a mistake worth
+# not repeating:
+#
+#   SOURCE_LOCALE  -- the language pages are authored in. It is the fallback for
+#                     anything not yet translated, so changing it would change
+#                     which language an untranslated page is published in.
+#   LANDING_LOCALE -- the language a visitor to the site root is sent to. This is
+#                     an audience decision and nothing else depends on it.
+#
+# They differ on purpose. Chinese is the source of truth, but most readers
+# arriving at the root are colleagues who read English, and a reader who wants
+# the other language is one click away in either direction.
+SOURCE_LOCALE = "zh"
+LANDING_LOCALE = "en"
 
 REDIRECT = """<!DOCTYPE html>
 <html lang="{lang}">
@@ -66,7 +85,7 @@ def content_root(locale: str) -> Path:
     than failing the parity check and with it the whole site. See
     fill_untranslated.py.
     """
-    if locale == DEFAULT_LOCALE:
+    if locale == SOURCE_LOCALE:
         return REPOSITORY / "content" / locale
     # Deliberately outside the repository. Quartz honours .gitignore when it
     # collects input files, so a staging tree placed inside the repo has to be
@@ -77,7 +96,7 @@ def content_root(locale: str) -> Path:
         [
             "python3",
             str(SCRIPTS / "fill_untranslated.py"),
-            str(REPOSITORY / "content" / DEFAULT_LOCALE),
+            str(REPOSITORY / "content" / SOURCE_LOCALE),
             str(REPOSITORY / "content" / locale),
             str(staging),
         ],
@@ -204,8 +223,8 @@ def main() -> int:
                 "python3",
                 str(SCRIPTS / "render_config.py"),
                 str(BASE_CONFIG),
-                DEFAULT_LOCALE,
-                f"{args.host}{base_path}{DEFAULT_LOCALE}",
+                SOURCE_LOCALE,
+                f"{args.host}{base_path}{SOURCE_LOCALE}",
                 str(CONFIG),
             ],
             cwd=QUARTZ,
@@ -302,7 +321,9 @@ def main() -> int:
     )
 
     (public / "index.html").write_text(
-        REDIRECT.format(lang="zh-CN", base_path=base_path, default=DEFAULT_LOCALE),
+        REDIRECT.format(
+            lang=HREFLANG[LANDING_LOCALE], base_path=base_path, default=LANDING_LOCALE
+        ),
         encoding="utf-8",
     )
     print(f"Built {', '.join(LOCALES)} into {public} under {base_path}.")
