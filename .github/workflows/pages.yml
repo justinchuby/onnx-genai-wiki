@@ -15,8 +15,15 @@ permissions:
   id-token: write
 
 concurrency:
+  # Every run here is a main deploy: there is no pull_request trigger, so a
+  # newer run cancelling an older one only ever cancels a production
+  # deployment. sync-content.yml and translate.yml both push to main, so two
+  # pushes landing close together is the normal case rather than the unusual
+  # one. Queue them instead: the latest push always eventually deploys, and
+  # the shared 'pages' group keeps deployments serialized, which the
+  # github-pages environment requires in any case.
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
