@@ -9,7 +9,7 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
-translated_from: 15d2e65918e5f919913a275c362c1a64fe203608
+translated_from: b836e6588dce315dba58ecdc5ffe0783e030bf89
 translated_at: 2026-08-19
 ---
 
@@ -77,6 +77,34 @@ Every note should:
 8. Make the note self-contained for its intended reader. Links to `docs/` and code
    are evidence and implementation detail, not required homework.
 9. Clearly label proposed behavior; never present a target design as implemented.
+10. **Write for a reader who was not there.** A note may be born out of a
+    conversation, but the reader cannot see that conversation. Never attribute a
+    claim or an idea to the reader, and never point back to context that only
+    ever existed in a dialogue — such writing leaves the reader lost, and makes
+    the note read like a fragment of someone else's chat log. Rewrite the
+    question as the note's own statement, so every claim carries its own
+    context. The most common forms are below; everything in the left column is
+    forbidden:
+
+    <!-- voice-lint: off -->
+
+    | Not this | This |
+    |---|---|
+    | As you mentioned, this is a typo | The model card writes it as X; the template writes Y |
+    | Your observation is right — they are the same family | gpt-oss and Muse Glimmer share one skeleton |
+    | What you called "predicting the first character" | This step is often described as "predicting the first character" |
+
+    <!-- voice-lint: on -->
+
+    A generic "you" addressing the implementer ("your adapter layer needs to…")
+    is fine in itself, but when it can be replaced by "the caller" or "the
+    supplied…" without losing information, prefer the latter.
+
+    This rule is enforced by `scripts/lint_wiki_voice.py`, which runs in CI on
+    pull requests that touch `wiki/**`. When counter-examples must be quoted, as
+    in the table above, fence them with `<!-- voice-lint: off -->` /
+    `<!-- voice-lint: on -->` — the exemption covers only the fenced lines, and
+    it shows up in the diff.
 
 ## Language
 

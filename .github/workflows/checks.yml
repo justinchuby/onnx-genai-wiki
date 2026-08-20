@@ -1,0 +1,56 @@
+name: Checks
+
+# Until this existed, nothing ran on a pull request and the eight test files
+# under site/scripts/tests had never been executed by CI at all. The scripts
+# they cover rewrite links, inject the language switcher, stamp translations
+# and decide what gets published, so they were the least verified code on the
+# most load-bearing path.
+#
+# This is separate from pages.yml on purpose. That workflow deploys, so it only
+# triggers on main, which would mean tests first ran after a change had already
+# been merged. A check that reports a defect after it has shipped is a log
+# entry, not a gate.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # Matches pages.yml. If that moves, move this with it: a script that
+          # passes here and breaks during the deploy build is the failure this
+          # job exists to prevent.
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r site/requirements.txt
+
+      - name: Run the script tests
+        # This is the invocation behind `npm run wiki:validate`, spelled out so
+        # the job does not need node and the whole quartz dependency tree to run
+        # python tests. Discovery has to start inside the tests directory:
+        # `site` is also a standard library module, so discovering from the
+        # repository root resolves `site.scripts` against the stdlib and fails.
+        working-directory: site/quartz
+        run: python3 -m unittest discover -s ../scripts/tests
+
+      - name: Check code blocks agree across editions
+        # The unit tests cover this too, but only as an equality assertion. This
+        # step is what prints the offending page, line and the reason the rule
+        # exists.
+        run: python3 site/scripts/check_code_block_parity.py content/zh content/en

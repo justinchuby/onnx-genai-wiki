@@ -40,6 +40,7 @@
 .github/workflows/sync-squad-labels.yml
 .github/workflows/weight-cache-guard.yml
 .github/workflows/wheels.yml
+.github/workflows/wiki-lint.yml
 .gitignore
 .gitmodules
 .mcp.json
@@ -3103,6 +3104,7 @@ scripts/hooks/pre-commit
 scripts/img2img_e2e.py
 scripts/install-hooks.sh
 scripts/karras_parity.py
+scripts/lint_wiki_voice.py
 scripts/masked_diffusion_parity.py
 scripts/measure_decoder_claims.py
 scripts/measure_decoder_ep.py
@@ -3143,6 +3145,7 @@ scripts/run_coding_agent_demo.sh
 scripts/run_target_greedy_cuda.sh
 scripts/sdxl_e2e.py
 scripts/sweep_vram_floor.ps1
+scripts/test_lint_wiki_voice.py
 scripts/validate_ep_workspace_h200.py
 scripts/validate_plugin_ep_ort.py
 scripts/zero_copy_host_map_probe.py
@@ -3354,6 +3357,7 @@ wiki/metadata/Model Packages and Variants.md
 wiki/observability/Tracing and Profiling.md
 wiki/performance/Chunked Prefill.md
 wiki/performance/Performance Engineering Playbook.md
+wiki/prompting/Chat Template Survey.md
 wiki/prompting/Chat Templates.md
 wiki/start/Documentation Guide.md
 wiki/start/Repository Map.md
