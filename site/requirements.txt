@@ -1,0 +1,8 @@
+# Python dependencies for the site build.
+#
+# Only render_config.py needs anything beyond the standard library. It is
+# listed here rather than installed ad hoc in the workflow so that a local
+# build and a CI build resolve the same version: the first CI run of this
+# site failed with ModuleNotFoundError because PyYAML happened to be present
+# on the author's machine and absent from the runner.
+PyYAML==6.0.3

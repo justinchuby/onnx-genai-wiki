@@ -37,6 +37,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install Python dependencies
+        run: python3 -m pip install -r site/requirements.txt
+
       - name: Install dependencies
         working-directory: site/quartz
         run: npm ci
