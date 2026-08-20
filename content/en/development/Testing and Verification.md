@@ -136,7 +136,6 @@ edition 2024 and a few are 2021. Do **not** substitute a bare
 allowed in Rust 2024 or later`). Only cargo knows each package's declared
 edition, so driving the check per package is the only correct approach.
 
-<!-- code-parity: allow-divergence -->
 ```bash
 # Check only the packages you changed (Windows-safe):
 cargo fmt -p onnx-runtime-memory -- --check

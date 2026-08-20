@@ -14,7 +14,7 @@ lang: en
 created: 2026-08-19
 updated: 2026-08-19
 translated_from: c27bf2c5a692d23b3340bfa1cc1b5a28f647b87f
-translated_at: 2026-08-19
+translated_at: 2026-08-20
 ---
 
 # Virtual Memory for KV Cache
@@ -64,14 +64,14 @@ Since #755, VMM is the default path for the native CUDA EP.
 
 ```mermaid
 flowchart LR
-    subgraph VA["虚拟地址空间(reserve 一次,不变)"]
+    subgraph VA["virtual address space (reserved once, fixed)"]
       direction LR
-      P0["granule 0"] --- P1["granule 1"] --- P2["granule 2"] --- P3["... 未提交 ..."]
+      P0["granule 0"] --- P1["granule 1"] --- P2["granule 2"] --- P3["... uncommitted ..."]
     end
-    P0 -.cuMemMap.-> H0["物理句柄 A"]
-    P1 -.cuMemMap.-> H1["物理句柄 B"]
-    P2 -.cuMemMap.-> H2["物理句柄 C"]
-    P3 -.无映射.-> N["(不占显存)"]
+    P0 -.cuMemMap.-> H0["physical handle A"]
+    P1 -.cuMemMap.-> H1["physical handle B"]
+    P2 -.cuMemMap.-> H2["physical handle C"]
+    P3 -.no mapping.-> N["(no VRAM used)"]
 ```
 
 ## The first key constraint: granularity
@@ -88,7 +88,7 @@ VMM does not map by the byte. `cuMemMap` **can only map an integer number of gra
 This yields a core formula that runs through the whole document:
 
 ```text
-已提交字节数 = granule × (至少含 1 个活字节的窗口数)
+committed bytes = granule × (number of windows containing at least 1 live byte)
 ```
 
 **Note this counts "windows," not "live bytes."** Even if only 1 byte in a granule window is live, the whole granule must be committed. That is why **layout directly determines the memory lower bound**.
@@ -159,10 +159,10 @@ Scenario: multiple requests share the same system prompt / the same conversation
 
 ```mermaid
 flowchart TD
-    H["物理句柄 H<br/>(一份显存,计费一次)"]
-    A["请求 A 的 VA<br/>offset 0x...<br/><b>RW</b>(owner,写入)"] --> H
-    B["请求 B 的 VA<br/>另一段地址<br/><b>READ</b>"] --> H
-    C["请求 C 的 VA<br/>又一段地址<br/><b>READ</b>"] --> H
+    H["physical handle H<br/>(one copy of VRAM, billed once)"]
+    A["request A's VA<br/>offset 0x...<br/><b>RW</b>(owner, writes)"] --> H
+    B["request B's VA<br/>another address range<br/><b>READ</b>"] --> H
+    C["request C's VA<br/>yet another address range<br/><b>READ</b>"] --> H
 ```
 
 ### Three semantics that must be made clear
@@ -178,7 +178,7 @@ flowchart TD
 This is a distinctive design in this repository: **shareability is not guessed, it is computed**. `crates/onnx-runtime-memory-governor/src/shareability.rs`:
 
 ```text
-fragment_bytes                  = prefix_len × (该布局下每个片段的连续字节数)
+fragment_bytes                  = prefix_len × (contiguous bytes per fragment under this layout)
 shareable                       = fragment_bytes ≥ granule
 shareable_granules_per_fragment = floor(fragment_bytes / granule)
 multi_map_ops                   = fragments × shareable_granules_per_fragment
@@ -228,19 +228,19 @@ With that premise, the full flow of a prefix share is:
 ```mermaid
 sequenceDiagram
     participant G as governor / shareability
-    participant O as owner 请求
-    participant S as sharer 请求
+    participant O as owner request
+    participant S as sharer request
     participant V as VMM
     O->>G: evaluate_prefix_shareability(...)
-    G-->>O: shareable = true(或带理由拒绝)
+    G-->>O: shareable = true (or refused with a reason)
     O->>V: reserve_and_map_shared_prefix(RW)
-    V-->>O: 句柄 H(计费一次)
-    O->>O: 写入前缀 KV
+    V-->>O: handle H (billed once)
+    O->>O: write prefix KV
     S->>V: map_shared_prefix_readonly(H, PROT_READ)
-    V-->>S: refcount+1,additional_owned_bytes = 0
-    Note over O,S: 两者各自在前缀之后 commit 私有 granule
-    S->>V: 结束,refcount-1
-    O->>V: 结束,refcount → 0 → 释放 H
+    V-->>S: refcount+1, additional_owned_bytes = 0
+    Note over O,S: each commits its own private granules after the prefix
+    S->>V: end, refcount-1
+    O->>V: end, refcount → 0 → release H
 ```
 
 ### There is no CoW on the GPU side, and this is intentional
@@ -296,7 +296,7 @@ if !self.blocks.is_empty()
                retaining {} mapped block(s) until CUDA context teardown: {error}", ...);
     self.blocks.clear();
     self.len = 0;
-    return;   // ← 故意什么都不释放
+    return;   // ← deliberately release nothing
 }
 ```
 
@@ -319,21 +319,21 @@ Only when synchronization succeeds does it take the normal path: bind the contex
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Reserved: cuMemAddressReserve<br/>(拿地址,0 字节显存)
-    Reserved --> Committed: commit<br/>(governor 批准 → cuMemCreate<br/>+ cuMemMap + cuMemSetAccess)
-    Committed --> Committed: KV 增长<br/>(同段 VA 后面追加映射,指针不变)
-    Committed --> Shared: 前缀共享<br/>(同一 handle 以 PROT_READ 多映射,只计费一次)
-    Shared --> Committed: 所有 sharer 退出<br/>(refcount 归零)
-    Committed --> Reserved: release()<br/>(unmap + 还句柄,VA 保留可复用)
-    Reserved --> [*]: Drop<br/>(teardown 同步 → cuMemAddressFree)
-    Committed --> Quarantined: 提交失败 / 同步失败
-    Quarantined --> [*]: 故意泄漏到 context 销毁<br/>(宁可泄漏,不可损坏)
+    [*] --> Reserved: cuMemAddressReserve<br/>(get address, 0 bytes of VRAM)
+    Reserved --> Committed: commit<br/>(governor approves → cuMemCreate<br/>+ cuMemMap + cuMemSetAccess)
+    Committed --> Committed: KV growth<br/>(append mappings after the same VA, pointer unchanged)
+    Committed --> Shared: prefix sharing<br/>(same handle multi-mapped as PROT_READ, billed only once)
+    Shared --> Committed: all sharers exit<br/>(refcount reaches zero)
+    Committed --> Reserved: release()<br/>(unmap + return handles, VA kept for reuse)
+    Reserved --> [*]: Drop<br/>(teardown sync → cuMemAddressFree)
+    Committed --> Quarantined: commit failed / sync failed
+    Quarantined --> [*]: deliberately leak until context destruction<br/>(prefer leaking over corruption)
 ```
 
 ## Key points recap
 
 1. **Separating address from memory** is the fundamental means of solving "length unknown and growing"; the cost is that you must manage the mappings yourself.
-2. **Query granularity from the driver**, do not hard-code it; `已提交字节 = granule × 含活字节的窗口数`.
+2. **Query granularity from the driver**, do not hard-code it; `committed bytes = granule × windows containing live bytes`.
 3. **Layout determines the commit lower bound and the sharing cost**, but not the possibility of sharing; the possibility is the arithmetic question `fragment_bytes ≥ granule`.
 4. **One physical allocation mapped in multiple places is billed only once**; only the addresses and ledgers are duplicated; the lifetime is the union of all users.
 5. **GPU shared prefixes are read-only, with no CoW**; CoW exists only in the host-side `PagedKvCache`.

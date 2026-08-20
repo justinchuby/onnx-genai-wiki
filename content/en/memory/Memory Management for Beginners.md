@@ -14,7 +14,7 @@ lang: en
 created: 2026-08-17
 updated: 2026-08-19
 translated_from: 5cb64a83377a9003943b20ce57e8aae8cc79f9b0
-translated_at: 2026-08-19
+translated_at: 2026-08-20
 ---
 
 # Memory Management for Beginners
@@ -50,13 +50,13 @@ The recommended division of responsibility is:
 
 ```mermaid
 flowchart TD
-    PMM[ProcessMemoryManager<br/>注册、选择、pin 生命周期]
-    GOV[Governor / Authority<br/>审批与记账]
-    HOLDER[Holder / Policy<br/>选择 victim]
+    PMM[ProcessMemoryManager<br/>register / select / pin lifetime]
+    GOV[Governor / Authority<br/>approve / account]
+    HOLDER[Holder / Policy<br/>pick victim]
     EP[Execution Provider<br/>context / stream / copy / fence]
     ALLOC[DeviceAllocator<br/>allocate / free]
     BACK[VirtualBacking<br/>reserve / map / unmap]
-    SHARE[SharedMapping<br/>共享物理页]
+    SHARE[SharedMapping<br/>shared physical pages]
 
     PMM --> GOV
     PMM --> EP
@@ -73,13 +73,13 @@ flowchart TD
 The simplest CPU or GPU allocation can be understood as:
 
 ```text
-申请 100 MB
+Request 100 MB
     ↓
-系统找到可用物理内存
+System finds available physical memory
     ↓
-返回一个地址
+Return an address
     ↓
-使用完成后释放
+Free after use
 ```
 
 The corresponding minimal interface is roughly:
@@ -104,7 +104,7 @@ An ordinary eager allocator takes the full physical capacity when the allocation
 is created:
 
 ```text
-申请 10 GB ≈ 立即需要 10 GB 物理容量
+Request 10 GB ≈ immediately need 10 GB of physical capacity
 ```
 
 The "≈" is because the OS and driver may have demand paging, overcommit or shared
@@ -118,9 +118,9 @@ A VMM can separate the "virtual address" from the "physical backing".
 For example, a KV cache may eventually need 10 GB but currently uses only 100 MB:
 
 ```text
-10 GB 连续虚拟地址
-├── 0..100 MB      → 已映射真实显存
-└── 100 MB..10 GB  → 暂时只有地址
+10 GB contiguous virtual address
+├── 0..100 MB      → mapped real VRAM
+└── 100 MB..10 GB  → address only for now
 ```
 
 As more tokens are generated, backing is installed segment by segment:
@@ -218,16 +218,16 @@ negotiated explicitly.
 Multiple requests may share the same prompt:
 
 ```text
-请求 A: [共享 system prompt][A 的后续 token]
-请求 B: [共享 system prompt][B 的后续 token]
+Request A: [shared system prompt][A's later tokens]
+Request B: [shared system prompt][B's later tokens]
 ```
 
 Their KV can let two virtual addresses share the same batch of prefix physical pages:
 
 ```text
-A 的虚拟地址 ─┐
-               ├── 同一批 prefix physical pages
-B 的虚拟地址 ─┘
+A's virtual address ─┐
+                     ├── same batch of prefix physical pages
+B's virtual address ─┘
 ```
 
 This requires a physical handle, multi-address mapping, reference counting,
@@ -240,10 +240,10 @@ optional capability.
 The Governor is like a budget department:
 
 ```text
-总容量：24 GB
-已批准：22 GB
-请求：500 MB
-结果：可以批准
+Total capacity: 24 GB
+Approved:       22 GB
+Request:        500 MB
+Result:         can approve
 ```
 
 It maintains charges, reservations and leases. When memory is tight, all it can
@@ -251,7 +251,7 @@ send is:
 
 ```text
 pressure ticket:
-  请尝试释放 1 GB
+  try to free 1 GB
   priority = ...
   deadline = ...
 ```
@@ -260,10 +260,10 @@ Only the holder knows what can be released:
 
 ```text
 ModelResidency:
-  两个冷权重可释放 700 MB
+  two cold weights can free 700 MB
 
 KvPageStore:
-  当前 page 都被 in-flight kernel 使用，只能释放 0
+  all pages are in use by in-flight kernels, can free only 0
 ```
 
 > [!important] Authority never takes bytes directly
@@ -274,9 +274,9 @@ KvPageStore:
 The CPU no longer referencing a buffer does not mean the GPU has finished with it:
 
 ```text
-CPU 提交 kernel
-CPU 最后一个 owning handle 被 Drop
-GPU 仍在读取 buffer
+CPU submits kernel
+CPU drops the last owning handle
+GPU is still reading the buffer
 ```
 
 Freeing immediately would cause a device use-after-free. The safe flow is:
@@ -284,13 +284,13 @@ Freeing immediately would cause a device use-after-free. The safe flow is:
 ```text
 owning handle Drop
     ↓
-进入 EP/context 的 deferred-free queue
+enter the EP/context deferred-free queue
     ↓
-等待相关 stream/fence 完成
+wait for the related stream/fence to finish
     ↓
-allocator 真正释放
+allocator actually frees
     ↓
-更新 mapped-zone refund 和 Governor charge
+update mapped-zone refund and Governor charge
 ```
 
 RAII is therefore workable, but `Drop` should be responsible for enqueuing, not
@@ -343,7 +343,7 @@ sequenceDiagram
     participant E as Execution Provider
     participant A as DeviceAllocator
 
-    H->>B: 请求 N bytes
+    H->>B: request N bytes
     B->>G: reserve(authority, holder, role, N)
     G-->>B: provisional grant
     B->>E: allocate with selected mechanism
@@ -368,10 +368,10 @@ sequenceDiagram
     participant A as DeviceAllocator
     participant G as Governor
 
-    H->>E: 提交使用 allocation 的 GPU 工作
-    H->>Q: 最后一个 owning handle 被释放
-    Q->>Q: 等待相关 stream/fence
-    Q->>A: 真正 deallocate
+    H->>E: submit GPU work that uses the allocation
+    H->>Q: last owning handle is released
+    Q->>Q: wait for the related stream/fence
+    Q->>A: actually deallocate
     A-->>Q: actual released bytes
     Q->>G: release/refund charge
 ```
@@ -410,9 +410,9 @@ Execution Provider
         │
         ▼
 Memory mechanisms
-├── DeviceAllocator       必需：普通分配
-├── VirtualBacking        可选：按需映射
-└── SharedMapping         可选：共享物理页
+├── DeviceAllocator       required: ordinary allocation
+├── VirtualBacking        optional: on-demand mapping
+└── SharedMapping         optional: shared physical pages
         ▲
         │
 Holders / Policies

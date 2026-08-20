@@ -14,7 +14,7 @@ lang: en
 created: 2026-08-19
 updated: 2026-08-19
 translated_from: 24a46f1941f6cccf4b4efa91da7de01fdac7696a
-translated_at: 2026-08-19
+translated_at: 2026-08-20
 ---
 
 # Chat Templates
@@ -35,8 +35,8 @@ But when we write code we use a structure like this:
 ```json
 [
   {"role": "system",    "content": "You are a helpful assistant."},
-  {"role": "user",      "content": "帮我看看这段代码"},
-  {"role": "assistant", "content": "好的,你贴一下。"}
+  {"role": "user",      "content": "Take a look at this code for me"},
+  {"role": "assistant", "content": "Sure, paste it here."}
 ]
 ```
 
@@ -50,7 +50,7 @@ What it renders looks roughly like this (using ChatML style as an example):
 <|im_start|>system
 You are a helpful assistant.<|im_end|>
 <|im_start|>user
-帮我看看这段代码<|im_end|>
+Take a look at this code for me<|im_end|>
 <|im_start|>assistant
 ```
 
@@ -174,13 +174,13 @@ into O(n) per step.
 
 ```mermaid
 flowchart LR
-    A["消息数组"] --> B["chat template 渲染"]
+    A["message array"] --> B["chat template rendering"]
     B --> C["tokenize"]
-    C --> D["Prefill:一次前向<br/>写满 KV cache"]
-    D --> E["取<b>最后一个位置</b>的 logits"]
-    E --> F["采样 → 第 1 个输出 token"]
-    F --> G["Decode:复用 KV<br/>逐 token 推进"]
-    G -->|遇到 eot/eom| H["停止"]
+    C --> D["Prefill: one forward pass<br/>fill the KV cache"]
+    D --> E["take the <b>last position</b>'s logits"]
+    E --> F["sample → 1st output token"]
+    F --> G["Decode: reuse KV<br/>advance token by token"]
+    G -->|on eot/eom| H["stop"]
     G --> G
 ```
 
@@ -214,7 +214,7 @@ array**:
 ```json
 {"role": "user", "content": [
   {"type": "image"},
-  {"type": "text", "text": "这张图里有什么?"}
+  {"type": "text", "text": "What's in this image?"}
 ]}
 ```
 
@@ -322,12 +322,12 @@ it uses `<|eom|>` (more to come). The semantics are coupled cleanly.
 
 ```mermaid
 flowchart TD
-    S["system<br/>(工具定义 + Valid recipients)"] --> U["user"]
-    U --> A1["assistant <b>to=self</b><br/>规划/推理 · &lt;&#124;eom&#124;&gt;"]
-    A1 --> A2["assistant <b>to=web.search</b><br/>ATEM 调用 · &lt;&#124;eom&#124;&gt;"]
+    S["system<br/>(tool definitions + Valid recipients)"] --> U["user"]
+    U --> A1["assistant <b>to=self</b><br/>plan/reason · &lt;&#124;eom&#124;&gt;"]
+    A1 --> A2["assistant <b>to=web.search</b><br/>ATEM call · &lt;&#124;eom&#124;&gt;"]
     A2 --> T["tool web.search<br/>&lt;tool_output&gt; · &lt;&#124;eot&#124;&gt;"]
-    T --> A3["assistant <b>to=self</b><br/>解读结果 · &lt;&#124;eom&#124;&gt;"]
-    A3 --> A4["assistant <b>to=user</b><br/>最终回答 · &lt;&#124;eot&#124;&gt;"]
+    T --> A3["assistant <b>to=self</b><br/>interpret results · &lt;&#124;eom&#124;&gt;"]
+    A3 --> A4["assistant <b>to=user</b><br/>final answer · &lt;&#124;eot&#124;&gt;"]
 ```
 
 ### Why this design is worth learning from
@@ -429,7 +429,7 @@ Glimmer's template writes out a complete three-level fallback:
 {%- set tname = message.get('name') -%}
 {%- if not tname -%}
     {%- set tcid = message.get('tool_call_id') -%}
-    ... 遍历历史 messages,按 tc.id == tcid 反查 tc.function.name ...
+    ... iterate historical messages, look up tc.function.name where tc.id == tcid ...
 {%- endif -%}
 {{- '<|start|>tool ' + tname + '<|message|><tool_output name="' + tname + '">\n' -}}
 ```
@@ -443,18 +443,18 @@ fields at once — the comment on the struct says so directly.
 
 ```mermaid
 sequenceDiagram
-    participant C as 调用方
+    participant C as caller
     participant T as chat template
-    participant M as 模型
-    participant X as 工具执行器
+    participant M as model
+    participant X as tool executor
     C->>T: messages + tools + add_generation_prompt
-    T->>M: 渲染后的 prompt
-    M-->>C: tool_calls(finish_reason = "tool_calls",以 eom 停止)
-    C->>X: 执行函数
-    X-->>C: 结果
-    C->>T: 追加 {"role":"tool", ...} 后重新渲染<b>整段</b>
-    T->>M: 新 prompt
-    M-->>C: 最终文本(以 eot 停止)
+    T->>M: rendered prompt
+    M-->>C: tool_calls (finish_reason = "tool_calls", stops at eom)
+    C->>X: execute the function
+    X-->>C: result
+    C->>T: append {"role":"tool", ...}, then re-render the <b>whole</b> sequence
+    T->>M: new prompt
+    M-->>C: final text (stops at eot)
 ```
 
 The key point: every turn **re-renders the complete conversation** before sending it into the

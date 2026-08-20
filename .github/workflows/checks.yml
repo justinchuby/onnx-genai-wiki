@@ -49,12 +49,6 @@ jobs:
         working-directory: site/quartz
         run: python3 -m unittest discover -s ../scripts/tests
 
-      - name: Check code blocks agree across editions
-        # The unit tests cover this too, but only as an equality assertion. This
-        # step is what prints the offending page, line and the reason the rule
-        # exists.
-        run: python3 site/scripts/check_code_block_parity.py content/zh content/en
-
       - name: Check every page reads for an outside reader
         # The linter is mirrored from the source repository rather than kept
         # here, so both editions are held to one definition of the rule instead

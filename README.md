@@ -90,6 +90,40 @@ The value is a git blob sha, so it can be checked by hand:
 git hash-object "content/zh/index.md"
 ```
 
+### Code blocks are translated by judgement, not by rule
+
+Both editions once had to hold byte-identical code blocks, enforced by a script.
+The rule was removed, and the reasoning is worth keeping because it is easy to
+reintroduce.
+
+The rule was attractive because it is mechanical: a command, an identifier or a
+path must not be paraphrased, and equality catches every case at once. What it
+missed is that a fenced block is not always code. A Mermaid diagram is a fenced
+block, and so is an ASCII drawing, a rendered chat transcript and a skeleton a
+reader is meant to copy. Requiring equality did not merely fail to help those —
+it **forbade translating them**, and the English edition shipped with ten Mermaid
+diagrams labelled entirely in Chinese. A check meant to prevent a subtle error
+was mandating an obvious one.
+
+What replaces it is a distinction the translator has to make:
+
+| Translate | Leave verbatim |
+| --- | --- |
+| Mermaid node and edge labels | Mermaid syntax, node IDs, arrow forms |
+| Comments in any language block | Identifiers, crate names, paths, env vars, commands |
+| Prose and labels inside `text` diagrams | Special tokens such as `<\|im_start\|>` |
+| Illustrative example content | Real chat-template source and captured tool output |
+
+Two consequences follow that a checker would not have enforced anyway. A block
+showing *rendered output* of an example must be translated in step with the
+example that produces it, or the page demonstrates a template turning one input
+into an unrelated output. And an ASCII diagram has to be re-padded after
+translation, because English labels are wider than the Chinese they replace.
+
+The general lesson: an enforceable rule is not the same as a correct one, and a
+check that cannot express the real requirement will get obeyed instead of the
+requirement.
+
 ## Workflows
 
 | Workflow | Trigger | What it does |

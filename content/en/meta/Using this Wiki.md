@@ -12,7 +12,7 @@ lang: en
 created: 2026-08-17
 updated: 2026-08-19
 translated_from: 9d6959375aa0b412b93fa7677ddee054c963ebff
-translated_at: 2026-08-19
+translated_at: 2026-08-20
 ---
 
 # Using this Wiki
@@ -177,25 +177,25 @@ aliases: []
 tags:
   - domain
 status: draft
-lang: zh-CN
+lang: en
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
 
 # Note Title
 
-> [!summary] 本文回答的问题
-> 一句话说明读者能从这篇笔记里得到什么。
+> [!summary] The question this note answers
+> One sentence on what a reader gets from this note.
 
-## 说明
+## Overview
 
 ...
 
-## 权威来源
+## Authoritative sources
 
-- [来源](../../docs/path.md)
+- [Source](../../docs/path.md)
 
-## 相关笔记
+## Related notes
 
 - [[start/Repository Map]]
 ```
