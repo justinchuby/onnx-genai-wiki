@@ -7,7 +7,9 @@ builds. Both are emitted under a single ``public/`` tree:
 
     public/index.html   redirect to the default locale
     public/zh/...       built from content/zh
-    public/en/...       built from content/en
+    public/en/...       built from content/en, plus any page that has no
+                        translation yet, carried over in Chinese
+
 
 Keeping the two locales at sibling prefixes means the language switcher is a
 pure prefix swap: any page's counterpart is the same path with ``/zh/``
@@ -24,6 +26,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import subprocess
+import tempfile
 import sys
 from pathlib import Path
 
@@ -52,13 +55,45 @@ REDIRECT = """<!DOCTYPE html>
 """
 
 
+STAGING_ROOT = Path(tempfile.mkdtemp(prefix="onnx-genai-wiki-staging-"))
+
+
+def content_root(locale: str) -> Path:
+    """Where a locale is built from.
+
+    Every locale but the source language is built from a staging tree, so that a
+    page nobody has translated yet is published in the source language rather
+    than failing the parity check and with it the whole site. See
+    fill_untranslated.py.
+    """
+    if locale == DEFAULT_LOCALE:
+        return REPOSITORY / "content" / locale
+    # Deliberately outside the repository. Quartz honours .gitignore when it
+    # collects input files, so a staging tree placed inside the repo has to be
+    # either committed or ignored, and ignoring it makes Quartz find zero input
+    # files and emit an empty site without reporting an error.
+    staging = STAGING_ROOT / locale
+    run(
+        [
+            "python3",
+            str(SCRIPTS / "fill_untranslated.py"),
+            str(REPOSITORY / "content" / DEFAULT_LOCALE),
+            str(REPOSITORY / "content" / locale),
+            str(staging),
+        ],
+        cwd=SITE,
+    )
+    return staging
+
+
 def run(command: list[str], cwd: Path) -> None:
     print(f"$ {' '.join(command)}", flush=True)
     subprocess.run(command, cwd=cwd, check=True)
 
 
-def build_locale(locale: str, host: str, base_path: str, public: Path, manifest: Path) -> None:
-    content = REPOSITORY / "content" / locale
+def build_locale(
+    locale: str, host: str, base_path: str, public: Path, manifest: Path, content: Path
+) -> None:
     if not any(content.rglob("*.md")):
         raise SystemExit(
             f"{content}: no pages to build. An empty locale would publish an "
@@ -79,6 +114,19 @@ def build_locale(locale: str, host: str, base_path: str, public: Path, manifest:
     )
     output = public / locale
     run(["npx", "quartz", "build", "-d", str(content), "-o", str(output)], cwd=QUARTZ)
+
+    # Quartz reports "Found 0 input files" and exits successfully when it
+    # declines to read the content directory -- it honours .gitignore, among
+    # other things -- so a silent empty build looks exactly like a good one
+    # until something much further downstream notices.
+    pages = sum(1 for _ in content.rglob("*.md"))
+    rendered = sum(1 for _ in output.rglob("*.html"))
+    if rendered < pages:
+        raise SystemExit(
+            f"{locale}: built {rendered} page(s) from {pages} source file(s) in "
+            f"{content}. Quartz read fewer files than exist; check that the "
+            f"content directory is not excluded by .gitignore."
+        )
     run(
         [
             "python3",
@@ -146,7 +194,7 @@ def main() -> int:
     run(["python3", "-m", "unittest", "discover", "-s", str(SCRIPTS / "tests")], cwd=SITE)
     for locale in LOCALES:
         run(
-            ["python3", str(SCRIPTS / "validate_wikilinks.py"), str(REPOSITORY / "content" / locale)],
+            ["python3", str(SCRIPTS / "validate_wikilinks.py"), str(content_root(locale))],
             cwd=SITE,
         )
 
@@ -192,7 +240,7 @@ def main() -> int:
 
     if args.serve:
         locale = args.serve
-        content = REPOSITORY / "content" / locale
+        content = content_root(locale)
         run(
             [
                 "python3",
@@ -222,7 +270,7 @@ def main() -> int:
         return 0
 
     for locale in LOCALES:
-        build_locale(locale, args.host, base_path, public, args.manifest)
+        build_locale(locale, args.host, base_path, public, args.manifest, content_root(locale))
 
     # Before the switcher, so that a page present in one language only is
     # reported as the structural difference it is rather than quietly given a

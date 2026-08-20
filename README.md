@@ -12,6 +12,13 @@ this repository will be silently overwritten by the next sync, which is why the
 mirror is replaced wholesale rather than merged.
 
 `content/en/` is the English edition, derived from `content/zh/` by translation.
+It is refreshed periodically rather than in lockstep, so it is expected to lag.
+A Chinese page with no translation yet is still published on the English site,
+in Chinese and labelled as untranslated, so that lag cannot break the build or
+leave the language switcher pointing at a missing page. `content/en/` itself is
+never written by that fallback -- a generated page there would be
+indistinguishable from a real translation, and `translation_status.py` would
+stop reporting the page as missing.
 It lives here rather than upstream because it is a product of publishing, not a
 part of the source wiki.
 
