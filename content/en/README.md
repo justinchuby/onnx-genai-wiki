@@ -9,7 +9,7 @@ status: maintained
 lang: en
 created: 2026-08-17
 updated: 2026-08-19
-translated_from: 59cbd5cad415f0849b6f5db5c6c55b6d535dc9b3
+translated_from: 15d2e65918e5f919913a275c362c1a64fe203608
 translated_at: 2026-08-19
 ---
 

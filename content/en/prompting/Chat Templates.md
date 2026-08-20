@@ -13,7 +13,7 @@ status: maintained
 lang: en
 created: 2026-08-19
 updated: 2026-08-19
-translated_from: 69821359564f4306120ece74f4466f7c17b1b0d6
+translated_from: 24a46f1941f6cccf4b4efa91da7de01fdac7696a
 translated_at: 2026-08-19
 ---
 
@@ -123,10 +123,12 @@ the inference stack configures `eos_token_id`, it needs to count both "end of tu
 message" as stop conditions, and treat them differently: hitting `eot` ends the turn and hands
 back to the user, while hitting `eom` usually means **it is time to run a tool**.
 
-## 3. "Does the model start predicting the first character right after the template?"
+## 3. Generation starts at the end of the template
 
-**Yes, and we can be more precise.** Your intuition is entirely right in direction; below is the
-exact mechanism, plus an important correction concerning Chinese.
+Once the template has been rendered, the sequence stops at a position where it is the assistant's
+turn to speak and nothing has been said yet, and the model carries on from exactly there. This
+section breaks that into four steps. The last subsection clears up a common slip: the model
+advances in tokens, not characters, which matters most for Chinese.
 
 ### Step 1: `add_generation_prompt`
 
@@ -143,7 +145,7 @@ marker of the assistant turn but with no content**:
 
 The point of this step is to stop the sequence at a position where "it is the assistant's turn to
 speak, but not a single character has been said yet". Use `True` for inference; use `False` when
-you are rendering a **complete conversation history** for logging or training replay, because
+rendering a **complete conversation history** for logging or training replay, because
 there the last assistant message already has content and does not need an empty opener appended.
 
 ### Step 2: Prefill, one forward pass
@@ -184,8 +186,8 @@ flowchart LR
 
 ### One thing that must be clarified: it is a "token", not a "character"
 
-What you called "predicting the first character" is strictly **predicting the first token**. For
-Chinese the difference is large:
+This step is often described as "predicting the first character"; strictly it is **predicting the
+first token**. For Chinese the difference is large:
 
 Modern tokenizers (the BPE / SentencePiece / tiktoken family) are trained mostly on UTF-8
 **byte sequences**, and a Chinese character **is often split into 2–3 sub-character tokens**,
@@ -256,18 +258,9 @@ Placeholder conventions for three real models (all taken from online `chat_templ
 
 ## 5. Case study: Muse Glimmer's channel (recipient) design
 
-You mentioned "seeing channels like ToSelf, ToUser in a model's template". Let me clarify two
-things first, then discuss the design.
-
-> [!warning] Clarifying the names
-> This model is **Muse Glimmer** (Meta Superintelligence Labs, August 2026, 30B, Apache 2.0,
-> open weights), not "Llama 3-V". Incidentally, `Llama3-V` was a 2024 Stanford student project
-> later shown to have extensively plagiarized MiniCPM-Llama3-V 2.5; it has nothing to do with
-> Meta, so do not confuse them.
->
-> Also, the actual form in the template is **not** camelCase names like `ToSelf`/`ToUser`, but a
-> `to=` recipient syntax: `to=self`, `to=user`, `to=<tool name>`. All the code below is quoted
-> verbatim from `meta-models/Muse-Glimmer-30B`'s `chat_template.jinja`.
+Muse Glimmer's template uses a `to=` **recipient** syntax: `to=self`, `to=user`,
+`to=<tool name>`. Every piece of code below is quoted verbatim from
+`meta-models/Muse-Glimmer-30B`'s `chat_template.jinja`.
 
 ### The core idea: every assistant message has a "recipient"
 
