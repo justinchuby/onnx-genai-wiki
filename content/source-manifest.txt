@@ -41,6 +41,7 @@
 .github/workflows/squad-issue-assign.yml
 .github/workflows/squad-triage.yml
 .github/workflows/sync-squad-labels.yml
+.github/workflows/visualizer-test.yml
 .github/workflows/weight-cache-guard.yml
 .github/workflows/wheels.yml
 .github/workflows/wiki-lint.yml
@@ -221,7 +222,14 @@
 .squad/decisions/archive/2026-Q2.md
 .squad/decisions/archive/decisions-archive-2026-07.md
 .squad/decisions/inbox/Copilot-keep-phase-1-memory-api-extraction-mechanism-only.md
+.squad/decisions/inbox/Copilot-phase-5-process-memory-manager-ownership-boundarie.md
 .squad/decisions/inbox/README.md
+.squad/decisions/inbox/chew-pr353-thin-m-gemm-review.md
+.squad/decisions/inbox/chew-pr359-clip-fast-review.md
+.squad/decisions/inbox/chew-pr361-neon-relu-review.md
+.squad/decisions/inbox/chew-pr366-dense-elementwise-review.md
+.squad/decisions/inbox/chew-pr368-dft-perch-review.md
+.squad/decisions/inbox/coordinator-criterion-failure-is-structural-not-probabilistic.md
 .squad/decisions/inbox/coordinator-in-environments-that-cannot-exercise-the-code-writ.md
 .squad/decisions/inbox/coordinator-mutation-testing-harnesses-fail-toward-false-confi.md
 .squad/decisions/inbox/coordinator-mutation-testing-is-the-acceptance-bar-for-the-mem.md
@@ -233,6 +241,11 @@
 .squad/decisions/inbox/gaff-deepseek-v2-cuda-coherence.md
 .squad/decisions/inbox/gaff-deepseek-v2-mask-graph-capture.md
 .squad/decisions/inbox/gaff-mtp-verify-graph-capture.md
+.squad/decisions/inbox/iran-dense-elementwise-simd.md
+.squad/decisions/inbox/roy-session-kv-cache.md
+.squad/decisions/inbox/sebastian-decode-budget-physical-cores.md
+.squad/decisions/inbox/sebastian-small-model-ttft.md
+.squad/decisions/inbox/sebastian-steady-state-prefill.md
 .squad/fact-checker/audit-trail.md
 .squad/fact-checker/policy.md
 .squad/identity/now.md
@@ -623,6 +636,7 @@
 .squad/rai/policy.md
 .squad/routing.md
 .squad/team.md
+.wa64.log
 AGENTS.md
 Cargo.lock
 Cargo.toml
@@ -665,6 +679,7 @@ crates/mlas-sys/examples/pool_microbench.rs
 crates/mlas-sys/src/lib.rs
 crates/mlas-sys/src/work_stealing_pool.rs
 crates/mlas-sys/tests/aarch64_assembly_is_built.rs
+crates/mlas-sys/tests/concurrent_dispatch.rs
 crates/mlas-sys/tests/sgemm_threading.rs
 crates/mlas-sys/tests/transcendentals.rs
 crates/mlas-sys/vendor/compat/SafeInt.hpp
@@ -1612,6 +1627,7 @@ crates/onnx-genai-engine/src/native_decode_device.rs
 crates/onnx-genai-engine/src/native_speculative.rs
 crates/onnx-genai-engine/src/pipeline/adapters.rs
 crates/onnx-genai-engine/src/pipeline/arg_reduce.rs
+crates/onnx-genai-engine/src/pipeline/audio.rs
 crates/onnx-genai-engine/src/pipeline/islands.rs
 crates/onnx-genai-engine/src/pipeline/mod.rs
 crates/onnx-genai-engine/src/pipeline/row_state.rs
@@ -1626,6 +1642,7 @@ crates/onnx-genai-engine/src/speculative/mod.rs
 crates/onnx-genai-engine/src/speculative/tree.rs
 crates/onnx-genai-engine/tests/adapter_workflow_e2e.rs
 crates/onnx-genai-engine/tests/batching_capability.rs
+crates/onnx-genai-engine/tests/chained_proposer_real.rs
 crates/onnx-genai-engine/tests/comfyui_workflow_e2e.rs
 crates/onnx-genai-engine/tests/common/decode_lock.rs
 crates/onnx-genai-engine/tests/common/oracle_lock.rs
@@ -1667,6 +1684,7 @@ crates/onnx-genai-engine/tests/native_engine.rs
 crates/onnx-genai-engine/tests/native_speculative_driver.rs
 crates/onnx-genai-engine/tests/onnx_genai_diffusion_parity.rs
 crates/onnx-genai-engine/tests/onnx_genai_workflow_conformance.rs
+crates/onnx-genai-engine/tests/onnx_owned_audio_conformance.rs
 crates/onnx-genai-engine/tests/phase3_concurrency_stress.rs
 crates/onnx-genai-engine/tests/phi35_fp16_decode_parity.rs
 crates/onnx-genai-engine/tests/phi35_mini_divergence.rs
@@ -1698,6 +1716,7 @@ crates/onnx-genai-engine/tests/stable_va_capture_offload_e2e.rs
 crates/onnx-genai-engine/tests/static_cache_workflow.rs
 crates/onnx-genai-engine/tests/tiny_llm_native_cuda_decode_workspace.rs
 crates/onnx-genai-engine/tests/tree_speculative.rs
+crates/onnx-genai-engine/tests/video_workflow_e2e.rs
 crates/onnx-genai-engine/tests/weight_offload_native_cuda_e2e.rs
 crates/onnx-genai-engine/tests/whisper_metadata_e2e.rs
 crates/onnx-genai-engine/tests/whisper_mobius_workflow_e2e.rs
@@ -1746,7 +1765,9 @@ crates/onnx-genai-metadata/src/schema/package.rs
 crates/onnx-genai-metadata/src/schema/pipeline.rs
 crates/onnx-genai-metadata/src/validation.rs
 crates/onnx-genai-metadata/tests/adapter_artifact_compat.rs
+crates/onnx-genai-metadata/tests/audio_output_contract.rs
 crates/onnx-genai-metadata/tests/canonical_graph_abi.rs
+crates/onnx-genai-metadata/tests/capability_catalogue.rs
 crates/onnx-genai-metadata/tests/catalogue.rs
 crates/onnx-genai-metadata/tests/ctc_asr_profile.rs
 crates/onnx-genai-metadata/tests/fixtures/composite_top_level_io_invalid.yaml
@@ -1758,10 +1779,13 @@ crates/onnx-genai-metadata/tests/fixtures/validator_missing_artifact/inference_m
 crates/onnx-genai-metadata/tests/fixtures/validator_package/identity.onnx.textproto
 crates/onnx-genai-metadata/tests/fixtures/validator_package/inference_metadata.yaml
 crates/onnx-genai-metadata/tests/fixtures/vlm_packed_valid.yaml
+crates/onnx-genai-metadata/tests/gemma4_e2b_workflow.rs
 crates/onnx-genai-metadata/tests/metadata_fixtures.rs
+crates/onnx-genai-metadata/tests/read_only_state_abi.rs
 crates/onnx-genai-metadata/tests/recurrent_state.rs
 crates/onnx-genai-metadata/tests/redesign_invariants.rs
 crates/onnx-genai-metadata/tests/schema_sync.rs
+crates/onnx-genai-metadata/tests/state_port_access.rs
 crates/onnx-genai-metadata/tests/static_cache_and_fp8_state.rs
 crates/onnx-genai-metadata/tests/textproto_fixtures.rs
 crates/onnx-genai-metadata/tests/validator_cli.rs
@@ -1795,6 +1819,7 @@ crates/onnx-genai-ort/src/governed_allocator.rs
 crates/onnx-genai-ort/src/io_roles.rs
 crates/onnx-genai-ort/src/lib.rs
 crates/onnx-genai-ort/src/loader.rs
+crates/onnx-genai-ort/src/managed_cuda_allocator.rs
 crates/onnx-genai-ort/src/mtp.rs
 crates/onnx-genai-ort/src/pipeline_admission.rs
 crates/onnx-genai-ort/src/profile.rs
@@ -1828,6 +1853,7 @@ crates/onnx-genai-ort/tests/fixtures/tiny-tokenizer-bos.json
 crates/onnx-genai-ort/tests/fixtures/tiny-tokenizer.json
 crates/onnx-genai-ort/tests/fp8_kv_capability.rs
 crates/onnx-genai-ort/tests/governed_allocator_session.rs
+crates/onnx-genai-ort/tests/managed_cuda_allocator_session.rs
 crates/onnx-genai-ort/tests/mtp_session.rs
 crates/onnx-genai-ort/tests/static_cache_signature.rs
 crates/onnx-genai-ort/tests/textproto_session.rs
@@ -1894,8 +1920,10 @@ crates/onnx-genai-server/src/routes/images.rs
 crates/onnx-genai-server/src/routes/mod.rs
 crates/onnx-genai-server/src/routes/multimodal.rs
 crates/onnx-genai-server/src/routes/sessions.rs
+crates/onnx-genai-server/src/routes/speech.rs
 crates/onnx-genai-server/src/runtime_args.rs
 crates/onnx-genai-server/src/session.rs
+crates/onnx-genai-server/src/speech.rs
 crates/onnx-genai-server/src/sse.rs
 crates/onnx-genai-server/src/state.rs
 crates/onnx-genai-server/src/tests.rs
@@ -2098,8 +2126,11 @@ crates/onnx-runtime-ep-cpu-plugin/tests/shape_inference_coverage.rs
 crates/onnx-runtime-ep-cpu-plugin/tests/wheel_packaging.rs
 crates/onnx-runtime-ep-cpu/Cargo.toml
 crates/onnx-runtime-ep-cpu/benches/README.md
+crates/onnx-runtime-ep-cpu/benches/acc0_gap_matrix.py
 crates/onnx-runtime-ep-cpu/benches/activation_bench.rs
+crates/onnx-runtime-ep-cpu/benches/common/decode_workload.rs
 crates/onnx-runtime-ep-cpu/benches/common/mod.rs
+crates/onnx-runtime-ep-cpu/benches/decode_gap_park_ab.rs
 crates/onnx-runtime-ep-cpu/benches/gqa_decode.rs
 crates/onnx-runtime-ep-cpu/benches/half_decode_gemv_ab.rs
 crates/onnx-runtime-ep-cpu/benches/half_prefill_route_ab.rs
@@ -2233,6 +2264,7 @@ crates/onnx-runtime-ep-cpu/src/provider.rs
 crates/onnx-runtime-ep-cpu/src/strided.rs
 crates/onnx-runtime-ep-cpu/src/task_runtime/mod.rs
 crates/onnx-runtime-ep-cpu/src/task_runtime/pool.rs
+crates/onnx-runtime-ep-cpu/src/test_support.rs
 crates/onnx-runtime-ep-cpu/src/trace.rs
 crates/onnx-runtime-ep-cpu/src/weight_offload.rs
 crates/onnx-runtime-ep-cpu/src/weight_offload/placement.rs
@@ -2282,6 +2314,7 @@ crates/onnx-runtime-ep-cuda/src/deferred_release.rs
 crates/onnx-runtime-ep-cuda/src/dynamic_library.rs
 crates/onnx-runtime-ep-cuda/src/error.rs
 crates/onnx-runtime-ep-cuda/src/graph.rs
+crates/onnx-runtime-ep-cuda/src/interleave_cache.rs
 crates/onnx-runtime-ep-cuda/src/kernel_cache.rs
 crates/onnx-runtime-ep-cuda/src/kernels/activations.rs
 crates/onnx-runtime-ep-cuda/src/kernels/argreduce.rs
@@ -2515,6 +2548,7 @@ crates/onnx-runtime-memory-api/Cargo.toml
 crates/onnx-runtime-memory-api/src/allocator.rs
 crates/onnx-runtime-memory-api/src/binding.rs
 crates/onnx-runtime-memory-api/src/capability.rs
+crates/onnx-runtime-memory-api/src/context_pin.rs
 crates/onnx-runtime-memory-api/src/deferred.rs
 crates/onnx-runtime-memory-api/src/lib.rs
 crates/onnx-runtime-memory-api/tests/binding_registry.rs
@@ -2540,6 +2574,7 @@ crates/onnx-runtime-memory-host/tests/nxmem_abi_allocator_scoped_pinning.rs
 crates/onnx-runtime-memory-host/tests/nxmem_abi_callback_pinning.rs
 crates/onnx-runtime-memory-host/tests/nxmem_abi_degraded_report.rs
 crates/onnx-runtime-memory-host/tests/nxmem_abi_plugin_gate.rs
+crates/onnx-runtime-memory-host/tests/nxmem_abi_provider_context_pinning.rs
 crates/onnx-runtime-memory-host/tests/nxmem_abi_unload_gate.rs
 crates/onnx-runtime-memory-host/tests/nxmem_factory_validation.rs
 crates/onnx-runtime-memory-host/tests/support/testplugin.rs
@@ -2970,7 +3005,10 @@ docs/benchmarks/2026-08-21-mobius-workflow-conformance.md
 docs/benchmarks/2026-08-21-qgemm-k-split-negative.md
 docs/benchmarks/2026-08-21-qlinear-u8-m1-instruction-mix.md
 docs/benchmarks/2026-08-21-qlinearmatmul-m1-signedness.md
+docs/benchmarks/2026-08-22-acc0-concurrency-inversion.md
+docs/benchmarks/2026-08-22-decode-width-scaling.md
 docs/benchmarks/2026-08-22-fused-matmul-bias-half-gemv.md
+docs/benchmarks/2026-08-22-sdpa-fanout.md
 docs/benchmarks/H200-CUDA-runbook.md
 docs/benchmarks/README.md
 docs/benchmarks/windows-cuda-runbook.md
@@ -3100,6 +3138,11 @@ examples/inference_metadata/catalogue/17-causal-convolution-recurrent.yaml
 examples/inference_metadata/catalogue/18-static-cache-indexed-scatter.yaml
 examples/inference_metadata/catalogue/19-operator-abi-comparison.yaml
 examples/inference_metadata/catalogue/20-qwen3_5-hybrid-speculative-decoding.yaml
+examples/inference_metadata/catalogue/21-shared-prefix-pixel-flow.yaml
+examples/inference_metadata/catalogue/22-qwen3-chained-speculative-decoding.yaml
+examples/inference_metadata/catalogue/23-gemma4-e2b-decoder.yaml
+examples/inference_metadata/catalogue/24-gemma4-e2b-assistant-speculative.yaml
+examples/inference_metadata/catalogue/25-gemma4-26b-a4b-moe-decoder.yaml
 examples/inference_metadata/catalogue/README.md
 examples/inference_metadata/evidence/README.md
 examples/inference_metadata/evidence/cogvideox-tiny/README.md
@@ -3131,6 +3174,7 @@ examples/inference_metadata/evidence/stable-diffusion-tiny/run.json
 examples/inference_metadata/evidence/whisper-tiny/README.md
 examples/inference_metadata/evidence/whisper-tiny/input.wav
 examples/inference_metadata/evidence/whisper-tiny/metrics.json
+examples/inference_metadata/visualizer.html
 examples/profiles/README.md
 examples/profiles/qwen2.5-0.5b-cpu.json
 examples/profiles/qwen2.5-0.5b-cpu.txt
@@ -3191,6 +3235,7 @@ scripts/build_tiny_masked_diffusion.py
 scripts/build_tiny_mtp_full.py
 scripts/build_tiny_multiaxis_state_decoder.py
 scripts/build_tiny_scatter.py
+scripts/build_tiny_speech_wav.py
 scripts/build_tiny_tts.py
 scripts/build_tiny_tts_nested.py
 scripts/build_tiny_tts_nested_preembed.py
@@ -3387,8 +3432,23 @@ tests/fixtures/onnx_genai_workflows/speculative/policies/proposal_metrics.onnx.t
 tests/fixtures/onnx_genai_workflows/speculative/policies/speculative_acceptance.onnx.textproto
 tests/fixtures/onnx_genai_workflows/speculative/proposer/model.onnx.data
 tests/fixtures/onnx_genai_workflows/speculative/proposer/model.onnx.textproto
-tests/fixtures/onnx_genai_workflows/speculative/verifier/model.onnx.data
 tests/fixtures/onnx_genai_workflows/speculative/verifier/model.onnx.textproto
+tests/fixtures/onnx_genai_workflows/speech_wav/inference_metadata.yaml
+tests/fixtures/onnx_genai_workflows/speech_wav/speech_processor.json
+tests/fixtures/onnx_genai_workflows/speech_wav/tokenizer.json
+tests/fixtures/onnx_genai_workflows/speech_wav/vocoder/model.onnx.textproto
+tests/fixtures/onnx_genai_workflows/speech_wav_mixed_audio/inference_metadata.yaml
+tests/fixtures/onnx_genai_workflows/speech_wav_mixed_audio/speech_processor.json
+tests/fixtures/onnx_genai_workflows/speech_wav_mixed_audio/tokenizer.json
+tests/fixtures/onnx_genai_workflows/speech_wav_mixed_audio/vocoder/model.onnx.textproto
+tests/fixtures/onnx_genai_workflows/speech_wav_two_adapters/inference_metadata.yaml
+tests/fixtures/onnx_genai_workflows/speech_wav_two_adapters/speech_processor.json
+tests/fixtures/onnx_genai_workflows/speech_wav_two_adapters/tokenizer.json
+tests/fixtures/onnx_genai_workflows/speech_wav_two_adapters/vocoder/model.onnx.textproto
+tests/fixtures/onnx_genai_workflows/speech_wav_two_audio/inference_metadata.yaml
+tests/fixtures/onnx_genai_workflows/speech_wav_two_audio/speech_processor.json
+tests/fixtures/onnx_genai_workflows/speech_wav_two_audio/tokenizer.json
+tests/fixtures/onnx_genai_workflows/speech_wav_two_audio/vocoder/model.onnx.textproto
 tests/fixtures/onnx_genai_workflows/static_cache/inference_metadata.yaml
 tests/fixtures/onnx_genai_workflows/static_cache/model.onnx.textproto
 tests/fixtures/onnx_genai_workflows/static_cache/policies/loop_continue.onnx.textproto
@@ -3537,6 +3597,7 @@ tests/fixtures/tiny-native-scalar-gqa/tokenizer.json
 tests/fixtures/tiny-native-sub4-engine/inference_metadata.yaml
 tests/fixtures/tiny-native-sub4-engine/model.onnx.textproto
 tests/fixtures/tiny-native-sub4-engine/tokenizer.json
+tests/fixtures/tiny-orphan-output-decoder/model.onnx.textproto
 tests/fixtures/tiny-qwen35-mtp/manifest.json
 tests/fixtures/tiny-qwen35-mtp/model.onnx.textproto
 tests/fixtures/tiny-reasoning/generate_tiny_reasoning.py
@@ -3545,6 +3606,7 @@ tests/fixtures/tiny-reasoning/manifest.json
 tests/fixtures/tiny-reasoning/model.onnx.textproto
 tests/fixtures/tiny-reasoning/tokenizer.json
 tests/fixtures/tiny-reasoning/tokenizer_config.json
+tests/inference_metadata_visualizer_test.mjs
 tests/parity/README.md
 tests/parity/native_ort_cuda_golden.json
 wiki/README.md
