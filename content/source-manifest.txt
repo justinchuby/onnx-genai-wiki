@@ -5,6 +5,8 @@
 .github/agents/squad.agent.md
 .github/copilot-instructions.md
 .github/root-file-allowlist.txt
+.github/scripts/ci_change_scope.sh
+.github/scripts/verify_cuda_runtime_dependencies.py
 .github/scripts/verify_cuda_test_honesty.py
 .github/scripts/verify_documented_env_vars.py
 .github/scripts/workspace_test_packages.py
@@ -2178,6 +2180,8 @@ crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/biasgelu_assignment_f16/model.o
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/cast_f32_to_i64/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/chain_add_mul/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/clip_no_min/model.onnx.textproto
+crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/dsa_index_select_float_output/model.onnx.textproto
+crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/dsa_index_select_opset2/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/exp_assignment_bf16_large/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/exp_assignment_f16_large/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/exp_assignment_f32_large/model.onnx.textproto
@@ -2330,6 +2334,7 @@ crates/onnx-runtime-ep-cpu/src/kernels/conv_transpose.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dense_elementwise.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dft.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dropout.rs
+crates/onnx-runtime-ep-cpu/src/kernels/dsa_index_select.rs
 crates/onnx-runtime-ep-cpu/src/kernels/elementwise.rs
 crates/onnx-runtime-ep-cpu/src/kernels/expand.rs
 crates/onnx-runtime-ep-cpu/src/kernels/eye_like.rs
@@ -2415,6 +2420,7 @@ crates/onnx-runtime-ep-cpu/src/kernels/x86_sgemm.rs
 crates/onnx-runtime-ep-cpu/src/lib.rs
 crates/onnx-runtime-ep-cpu/src/nchwc_layout.rs
 crates/onnx-runtime-ep-cpu/src/optimizer.rs
+crates/onnx-runtime-ep-cpu/src/persistent_pool_width.rs
 crates/onnx-runtime-ep-cpu/src/provider.rs
 crates/onnx-runtime-ep-cpu/src/strided.rs
 crates/onnx-runtime-ep-cpu/src/task_runtime/mod.rs
@@ -2462,7 +2468,12 @@ crates/onnx-runtime-ep-cuda-plugin/Cargo.toml
 crates/onnx-runtime-ep-cuda-plugin/src/lib.rs
 crates/onnx-runtime-ep-cuda-plugin/tests/cuda_fail_closed.rs
 crates/onnx-runtime-ep-cuda-plugin/tests/cuda_unique_ort_e2e.rs
+crates/onnx-runtime-ep-cuda-plugin/tests/dsa_index_select_ort_e2e.rs
+crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/dft_device_shape/model.onnx.textproto
 crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/nms_device_workspace/model.onnx.textproto
+crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/reduce_sum_device_axes/model.onnx.textproto
+crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/squeeze_device_axes/model.onnx.textproto
+crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/stft_device_shape/model.onnx.textproto
 crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/unique_all_outputs/model.onnx.textproto
 crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/unique_optional_subset/model.onnx.textproto
 crates/onnx-runtime-ep-cuda/Cargo.toml
@@ -2505,6 +2516,7 @@ crates/onnx-runtime-ep-cuda/src/kernels/device_argmax.rs
 crates/onnx-runtime-ep-cuda/src/kernels/device_token_writer.rs
 crates/onnx-runtime-ep-cuda/src/kernels/dft.rs
 crates/onnx-runtime-ep-cuda/src/kernels/dropout.rs
+crates/onnx-runtime-ep-cuda/src/kernels/dsa_index_select.rs
 crates/onnx-runtime-ep-cuda/src/kernels/elementwise.rs
 crates/onnx-runtime-ep-cuda/src/kernels/expert_route_telemetry.rs
 crates/onnx-runtime-ep-cuda/src/kernels/flash_attention.rs
@@ -2543,6 +2555,9 @@ crates/onnx-runtime-ep-cuda/src/kernels/onehot.rs
 crates/onnx-runtime-ep-cuda/src/kernels/packed_varlen_attention.rs
 crates/onnx-runtime-ep-cuda/src/kernels/pad.rs
 crates/onnx-runtime-ep-cuda/src/kernels/paged_attention.rs
+crates/onnx-runtime-ep-cuda/src/kernels/planar_block_decode.rs
+crates/onnx-runtime-ep-cuda/src/kernels/planar_block_decode/tests.rs
+crates/onnx-runtime-ep-cuda/src/kernels/planar_block_moe.rs
 crates/onnx-runtime-ep-cuda/src/kernels/pointwise.rs
 crates/onnx-runtime-ep-cuda/src/kernels/pooling.rs
 crates/onnx-runtime-ep-cuda/src/kernels/prelu.rs
@@ -2605,6 +2620,7 @@ crates/onnx-runtime-ep-cuda/tests/deferred_release_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/deferred_release_queue.rs
 crates/onnx-runtime-ep-cuda/tests/device_allocator_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/dft_gpu.rs
+crates/onnx-runtime-ep-cuda/tests/dsa_index_select_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/expert_bank_remap_cost_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/expert_route_oracle/mod.rs
 crates/onnx-runtime-ep-cuda/tests/expert_route_telemetry_probe.rs
@@ -2635,6 +2651,8 @@ crates/onnx-runtime-ep-cuda/tests/op_coverage_batch_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/opset24_ops_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/packed_varlen_attention_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/paged_attention_latent_gpu.rs
+crates/onnx-runtime-ep-cuda/tests/planar_block_decode_gpu.rs
+crates/onnx-runtime-ep-cuda/tests/planar_block_moe_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/pointwise_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/pooling_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/prefill_double_buffer_gpu.rs
@@ -2690,6 +2708,7 @@ crates/onnx-runtime-ep-plugin/src/shared_shapes.rs
 crates/onnx-runtime-ep-plugin/src/status.rs
 crates/onnx-runtime-ep-plugin/src/transfer.rs
 crates/onnx-runtime-ep-plugin/tests/alloc_attribution.rs
+crates/onnx-runtime-ep-plugin/tests/dsa_index_select_capability.rs
 crates/onnx-runtime-ep-plugin/tests/shared_gpu_conformance.rs
 crates/onnx-runtime-ep-plugin/tests/trait_cabi_parity.rs
 crates/onnx-runtime-ep-shared-mock-plugin/Cargo.toml
@@ -2825,6 +2844,7 @@ crates/onnx-runtime-python/src/dlpack.rs
 crates/onnx-runtime-python/src/eager.rs
 crates/onnx-runtime-python/src/genai.rs
 crates/onnx-runtime-python/src/lib.rs
+crates/onnx-runtime-python/src/thread_owned.rs
 crates/onnx-runtime-python/tests/nxrt_backend.py
 crates/onnx-runtime-python/tests/nxrt_runtime.py
 crates/onnx-runtime-python/tests/test_api.py
@@ -3110,6 +3130,7 @@ docs/architecture/CPP_VS_RUST.md
 docs/architecture/CRATE_RESERVATION.md
 docs/architecture/CROSS_PLATFORM.md
 docs/architecture/DESIGN.md
+docs/architecture/DSA_INDEX_SELECT_DESIGN.md
 docs/architecture/ERROR_AND_LOGGING_CONVENTIONS.md
 docs/architecture/GRAPHVIEW_LENS_DESIGN.md
 docs/architecture/INDEXSHARE_DESIGN.md
@@ -3235,6 +3256,7 @@ docs/benchmarks/2026-08-24-acc0-w16-clock-state.md
 docs/benchmarks/2026-08-24-acc0-w16-mode-placement.md
 docs/benchmarks/2026-08-24-acc0-w16-null-page-backing.md
 docs/benchmarks/2026-08-25-int4-pack-modulo-elimination-matrix.md
+docs/benchmarks/2026-08-26-acc0-w16-baseline-correction.md
 docs/benchmarks/H200-CUDA-runbook.md
 docs/benchmarks/README.md
 docs/benchmarks/windows-cuda-runbook.md
@@ -3271,6 +3293,7 @@ docs/genai/COMFYUI_IMPORT.md
 docs/genai/DIFFUSION.md
 docs/genai/ENCODER_BATCHING.md
 docs/genai/INFERENCE_METADATA_DECISIONS.md
+docs/genai/METADATA_CAPABILITY_MODEL.md
 docs/genai/MOBIUS_WORKFLOW_PRODUCER.md
 docs/genai/MODEL_METADATA.md
 docs/genai/MODEL_PACKAGE.md
@@ -3503,6 +3526,8 @@ scripts/e2e_sub4bit_export.py
 scripts/euler_parity.py
 scripts/gen_inference_metadata.py
 scripts/hooks/pre-commit
+scripts/hostcensus.sh
+scripts/hostcensus_test.sh
 scripts/hostlock.sh
 scripts/hostlock_mutants.py
 scripts/hostlock_test.sh
@@ -3511,8 +3536,6 @@ scripts/karras_parity.py
 scripts/lint_wiki_voice.py
 scripts/measure_decoder_claims.py
 scripts/measure_decoder_ep.py
-scripts/merge_when_green.sh
-scripts/merge_when_green_test.sh
 scripts/moe_cache_sim_results.json
 scripts/moe_concentration_curve.py
 scripts/moe_concentration_results.json
@@ -3557,11 +3580,15 @@ scripts/repack_external_data.py
 scripts/run_benchmarks.sh
 scripts/run_coding_agent_demo.sh
 scripts/run_target_greedy_cuda.sh
+scripts/squad_promote_guard.sh
+scripts/squad_promote_guard_test.sh
 scripts/sweep_vram_floor.ps1
 scripts/test_lint_wiki_voice.py
 scripts/test_step.sh
 scripts/test_step_test.sh
+scripts/validate_dsa_index_select_plugin.py
 scripts/validate_ep_workspace_h200.py
+scripts/validate_hf_metadata_annotations.py
 scripts/validate_plugin_ep_ort.py
 scripts/zero_copy_host_map_probe.py
 specs/RFC_EXTENSIBLE_QUANT_TYPES.md
