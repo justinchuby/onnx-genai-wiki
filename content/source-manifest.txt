@@ -1764,6 +1764,7 @@ crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/chain_add_mul/model.onnx.textpr
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/clip_no_min/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/dsa_index_select_float_output/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/dsa_index_select_opset2/model.onnx.textproto
+crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/einsum_gemm_2d/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/exp_assignment_bf16_large/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/exp_assignment_f16_large/model.onnx.textproto
 crates/onnx-runtime-ep-cpu-plugin/tests/fixtures/exp_assignment_f32_large/model.onnx.textproto
@@ -1866,6 +1867,7 @@ crates/onnx-runtime-ep-cpu/benches/common/mod.rs
 crates/onnx-runtime-ep-cpu/benches/cpu_work_probe.py
 crates/onnx-runtime-ep-cpu/benches/decode_gap_park_ab.rs
 crates/onnx-runtime-ep-cpu/benches/decode_placement_census.sh
+crates/onnx-runtime-ep-cpu/benches/einsum.rs
 crates/onnx-runtime-ep-cpu/benches/gqa_decode.rs
 crates/onnx-runtime-ep-cpu/benches/half_decode_gemv_ab.rs
 crates/onnx-runtime-ep-cpu/benches/half_prefill_route_ab.rs
@@ -1880,6 +1882,7 @@ crates/onnx-runtime-ep-cpu/benches/matmul_nbits_prefill_ab.rs
 crates/onnx-runtime-ep-cpu/benches/native_vs_mlas.rs
 crates/onnx-runtime-ep-cpu/benches/ort_baseline.py
 crates/onnx-runtime-ep-cpu/benches/ort_matmulnbits_baseline.py
+crates/onnx-runtime-ep-cpu/benches/run_einsum.sh
 crates/onnx-runtime-ep-cpu/benches/sdpa_simd.rs
 crates/onnx-runtime-ep-cpu/examples/qlinear_accumulator_rss.rs
 crates/onnx-runtime-ep-cpu/src/backend.rs
@@ -1917,6 +1920,7 @@ crates/onnx-runtime-ep-cpu/src/kernels/dense_elementwise.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dft.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dropout.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dsa_index_select.rs
+crates/onnx-runtime-ep-cpu/src/kernels/einsum.rs
 crates/onnx-runtime-ep-cpu/src/kernels/elementwise.rs
 crates/onnx-runtime-ep-cpu/src/kernels/expand.rs
 crates/onnx-runtime-ep-cpu/src/kernels/eye_like.rs
@@ -2099,6 +2103,7 @@ crates/onnx-runtime-ep-cuda/src/kernels/device_token_writer.rs
 crates/onnx-runtime-ep-cuda/src/kernels/dft.rs
 crates/onnx-runtime-ep-cuda/src/kernels/dropout.rs
 crates/onnx-runtime-ep-cuda/src/kernels/dsa_index_select.rs
+crates/onnx-runtime-ep-cuda/src/kernels/einsum.rs
 crates/onnx-runtime-ep-cuda/src/kernels/elementwise.rs
 crates/onnx-runtime-ep-cuda/src/kernels/expert_route_telemetry.rs
 crates/onnx-runtime-ep-cuda/src/kernels/flash_attention.rs
@@ -2203,6 +2208,7 @@ crates/onnx-runtime-ep-cuda/tests/deferred_release_queue.rs
 crates/onnx-runtime-ep-cuda/tests/device_allocator_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/dft_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/dsa_index_select_gpu.rs
+crates/onnx-runtime-ep-cuda/tests/einsum_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/expert_bank_remap_cost_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/expert_route_oracle/mod.rs
 crates/onnx-runtime-ep-cuda/tests/expert_route_telemetry_probe.rs
@@ -2310,6 +2316,7 @@ crates/onnx-runtime-ir/src/arena.rs
 crates/onnx-runtime-ir/src/device.rs
 crates/onnx-runtime-ir/src/domain.rs
 crates/onnx-runtime-ir/src/dtype.rs
+crates/onnx-runtime-ir/src/einsum.rs
 crates/onnx-runtime-ir/src/error.rs
 crates/onnx-runtime-ir/src/graph.rs
 crates/onnx-runtime-ir/src/graph_view.rs
@@ -2322,6 +2329,7 @@ crates/onnx-runtime-ir/src/shape.rs
 crates/onnx-runtime-ir/src/tensor.rs
 crates/onnx-runtime-ir/src/value.rs
 crates/onnx-runtime-ir/tests/density_shortcut_allocations.rs
+crates/onnx-runtime-ir/tests/einsum_public_api.rs
 crates/onnx-runtime-loader/Cargo.toml
 crates/onnx-runtime-loader/build.rs
 crates/onnx-runtime-loader/proto/onnx.proto3
@@ -2847,6 +2855,7 @@ docs/benchmarks/2026-08-24-acc0-w16-mode-placement.md
 docs/benchmarks/2026-08-24-acc0-w16-null-page-backing.md
 docs/benchmarks/2026-08-25-int4-pack-modulo-elimination-matrix.md
 docs/benchmarks/2026-08-26-acc0-w16-baseline-correction.md
+docs/benchmarks/2026-09-02-cpu-einsum.md
 docs/benchmarks/H200-CUDA-runbook.md
 docs/benchmarks/README.md
 docs/benchmarks/windows-cuda-runbook.md
@@ -2869,6 +2878,7 @@ docs/execution/CUDA_FLASH_ATTENTION.md
 docs/execution/CUDA_GRAPH_CAPTURE.md
 docs/execution/CUDA_STRATEGY.md
 docs/execution/EAGER.md
+docs/execution/EINSUM_PLANNING.md
 docs/execution/EP_CLAIM_DIAGNOSTICS.md
 docs/execution/EP_CONFORMANCE.md
 docs/execution/GQA_DECODE_PARALLEL.md
@@ -3060,6 +3070,7 @@ schema/inference_metadata.schema.json
 scripts/_ep_profile.py
 scripts/_min_boundary_repro.py
 scripts/audit_hf_metadata_collection.py
+scripts/bench_cuda_einsum.sh
 scripts/bench_long_context.sh
 scripts/bench_native_vs_mlas_width.py
 scripts/bench_speculative.sh
