@@ -1173,6 +1173,7 @@ crates/onnx-genai-cuda-version-guard/Cargo.toml
 crates/onnx-genai-cuda-version-guard/src/lib.rs
 crates/onnx-genai-engine/Cargo.toml
 crates/onnx-genai-engine/examples/evidence_probe.rs
+crates/onnx-genai-engine/examples/generate_dflash_admission_fixture.rs
 crates/onnx-genai-engine/examples/generate_scalar_gqa_fixture.rs
 crates/onnx-genai-engine/examples/greedy_token_dump.rs
 crates/onnx-genai-engine/examples/run_workflow_package.rs
@@ -1280,6 +1281,7 @@ crates/onnx-genai-engine/tests/deepseek_v2_lite_decode_lock.rs
 crates/onnx-genai-engine/tests/deepseek_v2_tiny_qmoe_native_e2e.rs
 crates/onnx-genai-engine/tests/deepseek_v4_tiny_csa_e2e.rs
 crates/onnx-genai-engine/tests/deepseek_v4_tiny_qmoe_e2e.rs
+crates/onnx-genai-engine/tests/dflash_fixture_sync.rs
 crates/onnx-genai-engine/tests/dflash_flat_block.rs
 crates/onnx-genai-engine/tests/e2e_mobius_heads.rs
 crates/onnx-genai-engine/tests/fixtures/dflash-admission/inference_metadata.yaml
@@ -1365,6 +1367,7 @@ crates/onnx-genai-engine/tests/shared_batching_differential.rs
 crates/onnx-genai-engine/tests/speculative_speedup.rs
 crates/onnx-genai-engine/tests/stable_va_capture_offload_e2e.rs
 crates/onnx-genai-engine/tests/static_cache_workflow.rs
+crates/onnx-genai-engine/tests/support/dflash_admission_fixture.rs
 crates/onnx-genai-engine/tests/tiny_llm_native_cuda_decode_workspace.rs
 crates/onnx-genai-engine/tests/token_context_workflow.rs
 crates/onnx-genai-engine/tests/tree_speculative.rs
@@ -1459,6 +1462,7 @@ crates/onnx-genai-metadata/tests/schema_sync.rs
 crates/onnx-genai-metadata/tests/schema_version.rs
 crates/onnx-genai-metadata/tests/session_continuity.rs
 crates/onnx-genai-metadata/tests/state_port_access.rs
+crates/onnx-genai-metadata/tests/state_update_source_compat.rs
 crates/onnx-genai-metadata/tests/static_cache_and_fp8_state.rs
 crates/onnx-genai-metadata/tests/tensor_shape_authority.rs
 crates/onnx-genai-metadata/tests/textproto_fixtures.rs
