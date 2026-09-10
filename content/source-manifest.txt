@@ -2030,6 +2030,7 @@ crates/onnx-runtime-ep-cpu/src/optimizer.rs
 crates/onnx-runtime-ep-cpu/src/persistent_pool_width.rs
 crates/onnx-runtime-ep-cpu/src/provider.rs
 crates/onnx-runtime-ep-cpu/src/strided.rs
+crates/onnx-runtime-ep-cpu/src/task_runtime/atomic_wait.rs
 crates/onnx-runtime-ep-cpu/src/task_runtime/mod.rs
 crates/onnx-runtime-ep-cpu/src/task_runtime/pool.rs
 crates/onnx-runtime-ep-cpu/src/test_support.rs
@@ -3220,6 +3221,7 @@ scripts/run_target_greedy_cuda.sh
 scripts/squad_promote_guard.sh
 scripts/squad_promote_guard_test.sh
 scripts/sweep_vram_floor.ps1
+scripts/test_check_publish_order.py
 scripts/test_lint_wiki_voice.py
 scripts/test_step.sh
 scripts/test_step_test.sh
