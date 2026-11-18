@@ -2315,7 +2315,9 @@ crates/onnx-runtime-hostmon/src/window.rs
 crates/onnx-runtime-hostmon/tests/agrees_with_hostlock_sh.rs
 crates/onnx-runtime-hostmon/tests/contention.rs
 crates/onnx-runtime-ir/Cargo.toml
+crates/onnx-runtime-ir/build.rs
 crates/onnx-runtime-ir/examples/remove_node_bench.rs
+crates/onnx-runtime-ir/proto/onnx.proto3
 crates/onnx-runtime-ir/src/arena.rs
 crates/onnx-runtime-ir/src/device.rs
 crates/onnx-runtime-ir/src/domain.rs
@@ -2328,6 +2330,7 @@ crates/onnx-runtime-ir/src/graph_view.rs
 crates/onnx-runtime-ir/src/layout.rs
 crates/onnx-runtime-ir/src/lib.rs
 crates/onnx-runtime-ir/src/node.rs
+crates/onnx-runtime-ir/src/onnx.rs
 crates/onnx-runtime-ir/src/scan_inline.rs
 crates/onnx-runtime-ir/src/scan_inline/tests.rs
 crates/onnx-runtime-ir/src/shape.rs
@@ -2339,8 +2342,6 @@ crates/onnx-runtime-ir/tests/einsum_contraction_tree.rs
 crates/onnx-runtime-ir/tests/einsum_legacy_source_compat.rs
 crates/onnx-runtime-ir/tests/einsum_public_api.rs
 crates/onnx-runtime-loader/Cargo.toml
-crates/onnx-runtime-loader/build.rs
-crates/onnx-runtime-loader/proto/onnx.proto3
 crates/onnx-runtime-loader/src/encoder.rs
 crates/onnx-runtime-loader/src/epcontext.rs
 crates/onnx-runtime-loader/src/error.rs
@@ -2359,6 +2360,7 @@ crates/onnx-runtime-loader/tests/function_inline.rs
 crates/onnx-runtime-loader/tests/ir_container_determinism.rs
 crates/onnx-runtime-loader/tests/legality.rs
 crates/onnx-runtime-loader/tests/loader.rs
+crates/onnx-runtime-loader/tests/shape_inference.rs
 crates/onnx-runtime-loader/tests/writer.rs
 crates/onnx-runtime-memory-abi/Cargo.toml
 crates/onnx-runtime-memory-abi/examples/minimal_plugin.c
