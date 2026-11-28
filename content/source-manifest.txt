@@ -2155,6 +2155,8 @@ crates/onnx-runtime-ep-api/src/abi/weights.rs
 crates/onnx-runtime-ep-api/src/affine_gather.rs
 crates/onnx-runtime-ep-api/src/attention_window.rs
 crates/onnx-runtime-ep-api/src/bit_cast.rs
+crates/onnx-runtime-ep-api/src/bitshift.rs
+crates/onnx-runtime-ep-api/src/det.rs
 crates/onnx-runtime-ep-api/src/epcontext.rs
 crates/onnx-runtime-ep-api/src/float8_cast.rs
 crates/onnx-runtime-ep-api/src/gemm.rs
@@ -2162,10 +2164,14 @@ crates/onnx-runtime-ep-api/src/host_parallel.rs
 crates/onnx-runtime-ep-api/src/kernel.rs
 crates/onnx-runtime-ep-api/src/lib.rs
 crates/onnx-runtime-ep-api/src/mean_variance_normalization.rs
+crates/onnx-runtime-ep-api/src/negative_log_likelihood_loss.rs
 crates/onnx-runtime-ep-api/src/one_hot.rs
 crates/onnx-runtime-ep-api/src/packed_routed.rs
 crates/onnx-runtime-ep-api/src/provider.rs
+crates/onnx-runtime-ep-api/src/random.rs
 crates/onnx-runtime-ep-api/src/registry.rs
+crates/onnx-runtime-ep-api/src/reverse_sequence.rs
+crates/onnx-runtime-ep-api/src/rnn.rs
 crates/onnx-runtime-ep-api/src/standard_activation.rs
 crates/onnx-runtime-ep-api/src/standard_math.rs
 crates/onnx-runtime-ep-api/src/tensor.rs
@@ -2395,6 +2401,7 @@ crates/onnx-runtime-ep-cpu/src/kernels/deform_conv.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dense_elementwise.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dequantize_packed.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dequantize_packed_gather.rs
+crates/onnx-runtime-ep-cpu/src/kernels/det.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dft.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dropout.rs
 crates/onnx-runtime-ep-cpu/src/kernels/dsa_index_select.rs
@@ -2451,6 +2458,7 @@ crates/onnx-runtime-ep-cpu/src/kernels/movement_ops.rs
 crates/onnx-runtime-ep-cpu/src/kernels/msft_attention.rs
 crates/onnx-runtime-ep-cpu/src/kernels/multi_head_attention.rs
 crates/onnx-runtime-ep-cpu/src/kernels/nchwc.rs
+crates/onnx-runtime-ep-cpu/src/kernels/negative_log_likelihood_loss.rs
 crates/onnx-runtime-ep-cpu/src/kernels/norm_ops.rs
 crates/onnx-runtime-ep-cpu/src/kernels/onehot.rs
 crates/onnx-runtime-ep-cpu/src/kernels/packed_bytes.rs
@@ -2468,13 +2476,16 @@ crates/onnx-runtime-ep-cpu/src/kernels/qgemm_native.rs
 crates/onnx-runtime-ep-cpu/src/kernels/qlinear_matmul.rs
 crates/onnx-runtime-ep-cpu/src/kernels/qmoe.rs
 crates/onnx-runtime-ep-cpu/src/kernels/quantization.rs
+crates/onnx-runtime-ep-cpu/src/kernels/random.rs
 crates/onnx-runtime-ep-cpu/src/kernels/re2_bridge.cc
 crates/onnx-runtime-ep-cpu/src/kernels/reduce.rs
 crates/onnx-runtime-ep-cpu/src/kernels/reduce_ops.rs
 crates/onnx-runtime-ep-cpu/src/kernels/relu.rs
 crates/onnx-runtime-ep-cpu/src/kernels/reshape.rs
 crates/onnx-runtime-ep-cpu/src/kernels/resize.rs
+crates/onnx-runtime-ep-cpu/src/kernels/reverse_sequence.rs
 crates/onnx-runtime-ep-cpu/src/kernels/rmsnorm.rs
+crates/onnx-runtime-ep-cpu/src/kernels/rnn.rs
 crates/onnx-runtime-ep-cpu/src/kernels/roi_align.rs
 crates/onnx-runtime-ep-cpu/src/kernels/rotary_embedding.rs
 crates/onnx-runtime-ep-cpu/src/kernels/routing_workspace.rs
@@ -2565,6 +2576,7 @@ crates/onnx-runtime-ep-cpu/tests/msft_attention_parity/cases.rs
 crates/onnx-runtime-ep-cpu/tests/msft_attention_parity/generate.py
 crates/onnx-runtime-ep-cpu/tests/native_grouped_allocation.rs
 crates/onnx-runtime-ep-cpu/tests/native_vs_mlas_differential.rs
+crates/onnx-runtime-ep-cpu/tests/negative_log_likelihood_loss.rs
 crates/onnx-runtime-ep-cpu/tests/normalization_workspace_allocation.rs
 crates/onnx-runtime-ep-cpu/tests/packed_grouped_allocation.rs
 crates/onnx-runtime-ep-cpu/tests/packed_matmul_byte_workspace.rs
@@ -2640,6 +2652,7 @@ crates/onnx-runtime-ep-cuda-plugin/tests/cuda_fail_closed.rs
 crates/onnx-runtime-ep-cuda-plugin/tests/cuda_unique_ort_e2e.rs
 crates/onnx-runtime-ep-cuda-plugin/tests/dsa_index_select_ort_e2e.rs
 crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/dft_device_shape/model.onnx.textproto
+crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/dft_modes/model.onnx.textproto
 crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/nms_device_workspace/model.onnx.textproto
 crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/reduce_sum_device_axes/model.onnx.textproto
 crates/onnx-runtime-ep-cuda-plugin/tests/fixtures/squeeze_device_axes/model.onnx.textproto
@@ -2695,6 +2708,8 @@ crates/onnx-runtime-ep-cuda/src/kernels/deform_conv.rs
 crates/onnx-runtime-ep-cuda/src/kernels/dequantize_packed.cu
 crates/onnx-runtime-ep-cuda/src/kernels/dequantize_packed.rs
 crates/onnx-runtime-ep-cuda/src/kernels/dequantize_packed_gather.rs
+crates/onnx-runtime-ep-cuda/src/kernels/det.cu
+crates/onnx-runtime-ep-cuda/src/kernels/det.rs
 crates/onnx-runtime-ep-cuda/src/kernels/device_argmax.rs
 crates/onnx-runtime-ep-cuda/src/kernels/device_token_writer.rs
 crates/onnx-runtime-ep-cuda/src/kernels/dft.rs
@@ -2744,6 +2759,7 @@ crates/onnx-runtime-ep-cuda/src/kernels/mod_op.rs
 crates/onnx-runtime-ep-cuda/src/kernels/movement.rs
 crates/onnx-runtime-ep-cuda/src/kernels/multi_head_attention.rs
 crates/onnx-runtime-ep-cuda/src/kernels/nary.rs
+crates/onnx-runtime-ep-cuda/src/kernels/negative_log_likelihood_loss.rs
 crates/onnx-runtime-ep-cuda/src/kernels/non_max_suppression.rs
 crates/onnx-runtime-ep-cuda/src/kernels/nonzero.rs
 crates/onnx-runtime-ep-cuda/src/kernels/normalization.rs
@@ -2766,9 +2782,14 @@ crates/onnx-runtime-ep-cuda/src/kernels/qmoe/workspace.rs
 crates/onnx-runtime-ep-cuda/src/kernels/qmoe_gemm.rs
 crates/onnx-runtime-ep-cuda/src/kernels/qmoe_grouping.rs
 crates/onnx-runtime-ep-cuda/src/kernels/quantization.rs
+crates/onnx-runtime-ep-cuda/src/kernels/quantization_int16.cu
+crates/onnx-runtime-ep-cuda/src/kernels/random.rs
 crates/onnx-runtime-ep-cuda/src/kernels/range.rs
 crates/onnx-runtime-ep-cuda/src/kernels/reduce.rs
 crates/onnx-runtime-ep-cuda/src/kernels/resize.rs
+crates/onnx-runtime-ep-cuda/src/kernels/reverse_sequence.rs
+crates/onnx-runtime-ep-cuda/src/kernels/rnn.cu
+crates/onnx-runtime-ep-cuda/src/kernels/rnn.rs
 crates/onnx-runtime-ep-cuda/src/kernels/roi_align.cu
 crates/onnx-runtime-ep-cuda/src/kernels/roi_align.rs
 crates/onnx-runtime-ep-cuda/src/kernels/rotary_embedding.rs
@@ -2842,6 +2863,9 @@ crates/onnx-runtime-ep-cuda/tests/expert_route_oracle/mod.rs
 crates/onnx-runtime-ep-cuda/tests/expert_route_telemetry_probe.rs
 crates/onnx-runtime-ep-cuda/tests/expert_route_telemetry_probe_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/fixtures/deform_conv.rs
+crates/onnx-runtime-ep-cuda/tests/fixtures/generate_linear_attention29.py
+crates/onnx-runtime-ep-cuda/tests/fixtures/linear_attention29.bin
+crates/onnx-runtime-ep-cuda/tests/fixtures/linear_attention29.rs
 crates/onnx-runtime-ep-cuda/tests/fixtures/max_roi_pool.rs
 crates/onnx-runtime-ep-cuda/tests/fixtures/mean_variance_normalization.rs
 crates/onnx-runtime-ep-cuda/tests/fixtures/packed_validation_workspace.rs
@@ -2891,6 +2915,7 @@ crates/onnx-runtime-ep-cuda/tests/qmoe_zero_copy_cold_expert_spike_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/qwen35_0_8b_placement_lock.rs
 crates/onnx-runtime-ep-cuda/tests/reduce_capture_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/reduce_comptype_fp16_gpu.rs
+crates/onnx-runtime-ep-cuda/tests/rnn_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/rope_capture_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/rope_contrib_gpu.rs
 crates/onnx-runtime-ep-cuda/tests/route_residency_boundary_gpu.rs
@@ -3629,6 +3654,7 @@ crates/onnx-runtime-ir/fuzz/seeds/pattern_tokens/ffc7b1be40f69885f31e6a43c1366a1
 crates/onnx-runtime-ir/proto/onnx.proto3
 crates/onnx-runtime-ir/src/affine_gather.rs
 crates/onnx-runtime-ir/src/arena.rs
+crates/onnx-runtime-ir/src/causal_conv_with_state.rs
 crates/onnx-runtime-ir/src/conv.rs
 crates/onnx-runtime-ir/src/deform_conv.rs
 crates/onnx-runtime-ir/src/dequantize_packed.rs
@@ -3645,12 +3671,14 @@ crates/onnx-runtime-ir/src/eye_like.rs
 crates/onnx-runtime-ir/src/gemm.rs
 crates/onnx-runtime-ir/src/graph.rs
 crates/onnx-runtime-ir/src/graph_view.rs
+crates/onnx-runtime-ir/src/int16_quantization.rs
 crates/onnx-runtime-ir/src/layout.rs
 crates/onnx-runtime-ir/src/lib.rs
 crates/onnx-runtime-ir/src/linear_attention.rs
 crates/onnx-runtime-ir/src/lp_pool.rs
 crates/onnx-runtime-ir/src/max_roi_pool.rs
 crates/onnx-runtime-ir/src/max_unpool.rs
+crates/onnx-runtime-ir/src/modulo.rs
 crates/onnx-runtime-ir/src/node.rs
 crates/onnx-runtime-ir/src/onnx.rs
 crates/onnx-runtime-ir/src/opset26.rs
@@ -3658,12 +3686,14 @@ crates/onnx-runtime-ir/src/packed_arithmetic.rs
 crates/onnx-runtime-ir/src/packed_integer.rs
 crates/onnx-runtime-ir/src/packed_matmul.rs
 crates/onnx-runtime-ir/src/packed_routed.rs
+crates/onnx-runtime-ir/src/pad.rs
 crates/onnx-runtime-ir/src/pattern/builder.rs
 crates/onnx-runtime-ir/src/pattern/compile.rs
 crates/onnx-runtime-ir/src/pattern/execute.rs
 crates/onnx-runtime-ir/src/pattern/mod.rs
 crates/onnx-runtime-ir/src/pattern/syntax.rs
 crates/onnx-runtime-ir/src/pooling.rs
+crates/onnx-runtime-ir/src/qlinear_matmul.rs
 crates/onnx-runtime-ir/src/quantized_grouped.rs
 crates/onnx-runtime-ir/src/quantized_matmul.rs
 crates/onnx-runtime-ir/src/roi_align.rs
@@ -3891,6 +3921,7 @@ crates/onnx-runtime-session/tests/batchnorm_workspace.rs
 crates/onnx-runtime-session/tests/bert_toy_conformance.rs
 crates/onnx-runtime-session/tests/bert_toy_optimized_parity.rs
 crates/onnx-runtime-session/tests/bool_reduce.rs
+crates/onnx-runtime-session/tests/compress_opset28.rs
 crates/onnx-runtime-session/tests/control_flow.rs
 crates/onnx-runtime-session/tests/cuda_control_flow_safety.rs
 crates/onnx-runtime-session/tests/cuda_prefetch_war.rs
@@ -3918,6 +3949,7 @@ crates/onnx-runtime-session/tests/graph_perf_audit.rs
 crates/onnx-runtime-session/tests/hetero_cuda_gpu.rs
 crates/onnx-runtime-session/tests/identity_aliased_binding.rs
 crates/onnx-runtime-session/tests/instance_normalization_v22.rs
+crates/onnx-runtime-session/tests/int16_quantization.rs
 crates/onnx-runtime-session/tests/layernorm_workspace.rs
 crates/onnx-runtime-session/tests/logsoftmax_workspace.rs
 crates/onnx-runtime-session/tests/lp_pool_v22.rs
@@ -3928,6 +3960,7 @@ crates/onnx-runtime-session/tests/model_metadata.rs
 crates/onnx-runtime-session/tests/modern_shape_size.rs
 crates/onnx-runtime-session/tests/mvn_workspace.rs
 crates/onnx-runtime-session/tests/native_grouped_workspace.rs
+crates/onnx-runtime-session/tests/native_random.rs
 crates/onnx-runtime-session/tests/one_hot_opset28.rs
 crates/onnx-runtime-session/tests/opset25_packed_transport.rs
 crates/onnx-runtime-session/tests/optional_ops.rs
@@ -4034,6 +4067,7 @@ crates/onnx-std/schemas/standard/average_pool.yaml
 crates/onnx-std/schemas/standard/average_pool_19.yaml
 crates/onnx-std/schemas/standard/bit_cast.yaml
 crates/onnx-std/schemas/standard/bit_shift.yaml
+crates/onnx-std/schemas/standard/bit_shift_v28.yaml
 crates/onnx-std/schemas/standard/bitwise_and.yaml
 crates/onnx-std/schemas/standard/bitwise_not.yaml
 crates/onnx-std/schemas/standard/bitwise_or.yaml
@@ -4042,6 +4076,7 @@ crates/onnx-std/schemas/standard/cast.yaml
 crates/onnx-std/schemas/standard/cast_like.yaml
 crates/onnx-std/schemas/standard/cast_v28.yaml
 crates/onnx-std/schemas/standard/causal_conv_with_state.yaml
+crates/onnx-std/schemas/standard/causal_conv_with_state_v29.yaml
 crates/onnx-std/schemas/standard/clip.yaml
 crates/onnx-std/schemas/standard/concat.yaml
 crates/onnx-std/schemas/standard/constant_of_shape.yaml
@@ -4092,6 +4127,7 @@ crates/onnx-std/schemas/standard/layer_normalization.yaml
 crates/onnx-std/schemas/standard/less.yaml
 crates/onnx-std/schemas/standard/less_or_equal.yaml
 crates/onnx-std/schemas/standard/linear_attention.yaml
+crates/onnx-std/schemas/standard/linear_attention_v29.yaml
 crates/onnx-std/schemas/standard/log.yaml
 crates/onnx-std/schemas/standard/log1p.yaml
 crates/onnx-std/schemas/standard/log_cum_sum_exp.yaml
@@ -4108,6 +4144,7 @@ crates/onnx-std/schemas/standard/max_unpool_v11.yaml
 crates/onnx-std/schemas/standard/max_unpool_v9.yaml
 crates/onnx-std/schemas/standard/min.yaml
 crates/onnx-std/schemas/standard/mod.yaml
+crates/onnx-std/schemas/standard/mod_v28.yaml
 crates/onnx-std/schemas/standard/mul.yaml
 crates/onnx-std/schemas/standard/neg.yaml
 crates/onnx-std/schemas/standard/non_zero.yaml
